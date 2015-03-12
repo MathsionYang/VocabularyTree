@@ -1,0 +1,25 @@
+﻿Build started 2014/12/28 17:25:24.
+     1>Project "D:\学习\C++\VocabularyTree\VocabularyTree\VocabularyTree.vcxproj" on node 2 (Build target(s)).
+     1>ClCompile:
+         D:\tools\VS2012\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt main.cpp sift.cpp utils.cpp VocabularyTree.cpp
+         VocabularyTree.cpp
+         utils.cpp
+         sift.cpp
+     1>d:\学习\c++\vocabularytree\vocabularytree\sift.cpp(127): warning C4244: “=”: 从“double”转换到“int”，可能丢失数据
+     1>d:\学习\c++\vocabularytree\vocabularytree\sift.cpp(178): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+     1>d:\学习\c++\vocabularytree\vocabularytree\sift.cpp(188): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+     1>d:\学习\c++\vocabularytree\vocabularytree\sift.cpp(1062): warning C4244: “=”: 从“double”转换到“int”，可能丢失数据
+     1>d:\学习\c++\vocabularytree\vocabularytree\sift.cpp(1166): warning C4101: “int_val”: 未引用的局部变量
+         main.cpp
+         正在生成代码...
+       Link:
+         D:\tools\VS2012\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"D:\学习\C++\VocabularyTree\Debug\VocabularyTree.exe" /INCREMENTAL /NOLOGO opencv_core248.lib opencv_imgproc248.lib opencv_highgui248.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:\学习\C++\VocabularyTree\Debug\VocabularyTree.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:\学习\C++\VocabularyTree\Debug\VocabularyTree.lib" /MACHINE:X86 Debug\main.obj
+         Debug\sift.obj
+         Debug\utils.obj
+         Debug\VocabularyTree.obj
+         VocabularyTree.vcxproj -> D:\学习\C++\VocabularyTree\Debug\VocabularyTree.exe
+     1>Done Building Project "D:\学习\C++\VocabularyTree\VocabularyTree\VocabularyTree.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:07.02

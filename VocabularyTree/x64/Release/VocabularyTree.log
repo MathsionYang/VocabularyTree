@@ -1,0 +1,21 @@
+﻿生成启动时间为 2015/3/21 11:59:19。
+     1>项目“F:\C++\VocabularyTree\VocabularyTree\VocabularyTree.vcxproj”在节点 2 上(Build 个目标)。
+     1>ClCompile:
+         E:\tools\VS2012\VC\bin\x86_amd64\CL.exe /c /Zi /nologo /W1 /WX- /O2 /Gm- /EHsc /MD /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"x64\Release\\" /Fd"x64\Release\vc110.pdb" /Gd /TP /errorReport:prompt common.cpp imageRetriver.cpp main.cpp VocabularyTree.cpp
+         common.cpp
+         imageRetriver.cpp
+         main.cpp
+     1>main.cpp(6): warning C4129: “d”: 不可识别的字符转义序列
+         VocabularyTree.cpp
+     1>VocabularyTree.cpp(5): error C2511: “void vocabularyTree::buildTree(double **,int,int,int,int)”:“vocabularyTree”中没有找到重载的成员函数
+                 f:\c++\vocabularytree\vocabularytree\VocabularyTree.h(53) : 参见“vocabularyTree”的声明
+         正在生成代码...
+     1>f:\c++\vocabularytree\vocabularytree\imageretriver.cpp(46): error C4716: “imageRetriver::getTFIDFVector”: 必须返回一个值
+     1>f:\c++\vocabularytree\vocabularytree\imageretriver.cpp(51): error C4716: “imageRetriver::getOneTFIDFVector”: 必须返回一个值
+     1>f:\c++\vocabularytree\vocabularytree\imageretriver.cpp(10): warning C4700: 使用了未初始化的局部变量“trainFeatures”
+     1>f:\c++\vocabularytree\vocabularytree\common.cpp(151): warning C4715: “DirectoryList”: 不是所有的控件路径都返回值
+     1>已完成生成项目“F:\C++\VocabularyTree\VocabularyTree\VocabularyTree.vcxproj”(Build 个目标)的操作 - 失败。
+
+生成失败。
+
+已用时间 00:00:05.13

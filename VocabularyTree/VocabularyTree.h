@@ -78,7 +78,7 @@ public:
 
 	int getTrainFeatures(double*** features, vector<string> imagePaths);
 	vector<vector<double>> getTFIDFVector(double*** features, int nFeatures);
-	vector<double> getOneTFIDFVector(double** oneImageFeat, int featNum); 
+	vector<double> getOneTFIDFVector(double** oneImageFeat, int featNums); 
 	void addFeature2DataBase(vector<vector<double>> tfidfVector);
 };
 

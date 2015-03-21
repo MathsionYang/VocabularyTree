@@ -6,7 +6,7 @@ void imageRetriver::buildDataBase(char* directoryPath)
 	vector<string> imagePaths;
 	DirectoryList(directoryPath, imagePaths, ".jpg");
 
-	double*** trainFeatures;
+	double*** trainFeatures = NULL;
 	int nFeatures = getTrainFeatures(trainFeatures, imagePaths);
 	tree->buildTree(trainFeatures, nFeatures, BRANCHNUM, DEPTHNUM, FEATLENGTH);
 	vector<vector<double>> tfidfVector = getTFIDFVector(trainFeatures, nFeatures);
@@ -42,10 +42,10 @@ int imageRetriver::getTrainFeatures(double*** trainFeatures, vector<string> imag
 	return totalCounts;
 }
 
-vector<vector<double>> imageRetriver::getTFIDFVector(double*** features, int nFeatures)
+vector<vector<double>> imageRetriver::getTFIDFVector(double*** features, int nImages)
 {
 	vector<vector<double>> tfidfVector;
-	for(int i = 0; i < nFeatures; i++)
+	for(int i = 0; i < nImages; i++)
 	{
 		vector<double> oneVector = getOneTFIDFVector(features[i], nFeatures[i]);
 		tfidfVector.push_back(oneVector);

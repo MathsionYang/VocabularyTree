@@ -1,5 +1,13 @@
 #include "VocabularyTree.h"
 
+struct cmpClass
+{
+	bool cmp(const double a, const double b)
+	{
+		return (a > b);
+	}
+}
+
 //==========================functions in class imageRetriver========================
 void imageRetriver::buildDataBase(char* directoryPath)
 {
@@ -8,7 +16,7 @@ void imageRetriver::buildDataBase(char* directoryPath)
 
 	double** trainFeatures = NULL;
 	int nFeatures = getTrainFeatures(trainFeatures, imagePaths);
-	tree->buildTree(trainFeatures, nFeatures, BRANCHNUM, DEPTHNUM, FEATLENGTH);
+	tree->buildTree(trainFeatures, nFeatures, tree->nBranch, tree->depth, featureLength);
 	vector<vector<double>> tfidfVector = getTFIDFVector(trainFeatures, nFeatures);
 	addFeature2DataBase(tfidfVector);
 }
@@ -19,6 +27,31 @@ vector<string> imageRetriver::queryImage(const char* imagePath)
 	IplImage* img = cvLoadImage(imagePath);
 	struct feature* feat = NULL;
 	int nFeatures = sift_features(img, &feat);
+	double** queryFeat = new double*[nFeatures];
+	for(int i = 0; i < nFeatures; i++)
+		queryFeat[i] = feat[i].descr;
+
+	vector<double> tfidfVector = getOneTFIDFVector(queryFeat[0], nFeatures, 0);
+
+	multimap<double, string, cmpClass> candidates;
+	map<vector<double>, string>::iterator iter; 
+	double maxDistance = 1e20;
+	for(iter = imageDatabase.begin(); iter != imageDatabase.end(); iter++)
+	{
+		vector<double> cur = iter->first;
+		double distance = vector_sqr_distance(cur, tfidfVector);
+		candidates.insert(make_pair(distance, iter->second));
+	}
+
+	int count = 0;
+	multimap<double, string>::iterator iter1;
+	for(iter1 = candidates.begin(); iter1 != candidates.end(); iter1++)
+	{
+		ans.push_back(iter1->second);
+		count++;
+		if(count == ANSNUM)
+			break;
+	}
 
 	return ans;
 }

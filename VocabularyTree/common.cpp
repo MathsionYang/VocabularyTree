@@ -13,6 +13,16 @@ double sqr_distance(double* vector1, double* vector2, int featureLength)
 	return sum;
 }
 
+double vector_sqr_distance(vector<double> vector1, vector<double> vector2)
+{
+	int size = vector1.size();
+	double sum = 0;
+	for(int i = 0; i < size; i++)
+		sum += (vector1[i] - vector2[i]) * (vector1[i] - vector2[i]);
+
+	return sum;
+}
+
 void node_add(double* &vector1, double* &vector2, int featureLength)
 {
 	for(int i = 0; i < featureLength; i++)

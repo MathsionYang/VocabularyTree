@@ -19,9 +19,6 @@ using namespace std;
 #define INTMAX 2147483647
 #define INTMIN -2147483648
 #define NRESULT 20
-#define BRANCHNUM 10
-#define DEPTHNUM 6
-#define FEATLENGTH 128
 #define ANSNUM 20     //the most similiar 20 images
 #define MAXFEATNUM 1500
 
@@ -71,7 +68,7 @@ class imageRetriver
 {
 public:
 	vocabularyTree* tree;
-	map<vector<vector<double>>, vector<string>> imageDatabase;
+	map<vector<double>, string> imageDatabase;
 	vector<string> imagePath;
 	int nImages;
 	int featureLength;
@@ -89,6 +86,7 @@ public:
 };
 
 extern double sqr_distance(double* vector1, double* vector2, int featureLength);
+extern double vector_sqr_distance(vector<double> vector1, vector<double> vector2);
 extern void node_add(double* &vector1, double* &vector2, int featureLength);
 extern void node_divide_cnt(double* &vector1, int cnt, int featureLength);
 extern void kmeans(featureClustering* features, int nFeatures, int branchNum, int* nums, int featureLength, double** clusterCenter);

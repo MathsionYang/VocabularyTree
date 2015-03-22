@@ -22,6 +22,8 @@ using namespace std;
 #define BRANCHNUM 10
 #define DEPTHNUM 6
 #define FEATLENGTH 128
+#define ANSNUM 20     //the most similiar 20 images
+#define MAXFEATNUM 1500
 
 class vocabularyTreeNode
 {
@@ -39,6 +41,9 @@ public:
 		nFeatures = featureLength;
 		feature = features;
 	}
+
+	double tf;
+	double idf;
 };
 
 class featureClustering
@@ -58,7 +63,7 @@ public:
 	int depth;
 
 	vocabularyTree() { root = NULL; }
-	void buildTree(double*** features, int nFeatures, int nBranch, int depth, int featureLength);
+	void buildTree(double** features, int nFeatures, int nBranch, int depth, int featureLength);
 	void buildRecursion(int curDepth, vocabularyTreeNode* curNode, featureClustering* features, int nFeatures, int branchNum, int featureLength);
 };
 
@@ -71,14 +76,15 @@ public:
 	int nImages;
 	int featureLength;
 	int *nFeatures;
+	int totalFeatures;
 
 	imageRetriver() { tree = NULL; nImages = 0; featureLength = 0; nFeatures = NULL;}
 	void buildDataBase( char* directoryPath );
 	vector<string> queryImage( const char* imagePath ); 
 
-	int getTrainFeatures(double*** features, vector<string> imagePaths);
-	vector<vector<double>> getTFIDFVector(double*** features, int nFeatures);
-	vector<double> getOneTFIDFVector(double** oneImageFeat, int featNums); 
+	int getTrainFeatures(double** features, vector<string> imagePaths);
+	vector<vector<double>> getTFIDFVector(double** features, int nImages);
+	vector<double> getOneTFIDFVector(double* oneImageFeat, int featNums, int nStart); 
 	void addFeature2DataBase(vector<vector<double>> tfidfVector);
 };
 

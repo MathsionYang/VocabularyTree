@@ -114,5 +114,6 @@ void calIDF(vector<string> imagePaths)
 	for(int i = 0; i < size; i++)
 	{
 		feature* feat;
+		
 	}
 }

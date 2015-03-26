@@ -83,6 +83,7 @@ public:
 	vector<vector<double>> getTFIDFVector(double** features, int nImages);
 	vector<double> getOneTFIDFVector(double* oneImageFeat, int featNums, int nStart); 
 	void addFeature2DataBase(vector<vector<double>> tfidfVector);
+	void calIDF(vector<string> imagePaths);
 };
 
 extern double sqr_distance(double* vector1, double* vector2, int featureLength);

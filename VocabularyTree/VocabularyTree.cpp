@@ -1,7 +1,7 @@
 ﻿#include "VocabularyTree.h"
 
 //==========================functions in class vocabularyTree========================
-void vocabularyTree::buildTree(double*** features, int nFeatures, int nBranch, int depth, int featureLength)
+void vocabularyTree::buildTree(double** features, int nFeatures, int nBranch, int depth, int featureLength)
 {
 	featureClustering* feature2Cluster;
 	feature2Cluster = new featureClustering[nFeatures];
@@ -35,8 +35,6 @@ void vocabularyTree::buildRecursion(int curDepth, vocabularyTreeNode* curNode, f
 		offset += nums[i] * sizeof(featureClustering);
 	}
 }
-
-
 
 
 

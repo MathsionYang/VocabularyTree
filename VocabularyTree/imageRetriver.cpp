@@ -13,6 +13,7 @@ void imageRetriver::buildDataBase(char* directoryPath)
 {
 	vector<string> imagePaths;
 	DirectoryList(directoryPath, imagePaths, ".jpg");
+	calIDF(imagePaths);
 
 	double** trainFeatures = NULL;
 	int nFeatures = getTrainFeatures(trainFeatures, imagePaths);
@@ -82,6 +83,7 @@ int imageRetriver::getTrainFeatures(double** trainFeatures, vector<string> image
 
 vector<vector<double>> imageRetriver::getTFIDFVector(double** features, int nImages)
 { 
+	calIDF();
 	vector<vector<double>> tfidfVector;
 	int startNum = 0;
 	for(int i = 0; i < nImages; i++)
@@ -103,4 +105,14 @@ vector<double> imageRetriver::getOneTFIDFVector(double* oneImageFeat, int featNu
 void imageRetriver::addFeature2DataBase(vector<vector<double>> tfidfVector)
 {
 
+}
+
+void calIDF(vector<string> imagePaths)
+{
+	int size = 0;
+	size = imagePaths.size();
+	for(int i = 0; i < size; i++)
+	{
+		feature* feat;
+	}
 }

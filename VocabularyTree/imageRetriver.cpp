@@ -6,7 +6,7 @@ struct cmpClass
 	{
 		return (a > b);
 	}
-}
+};
 
 //==========================functions in class imageRetriver========================
 void imageRetriver::buildDataBase(char* directoryPath)

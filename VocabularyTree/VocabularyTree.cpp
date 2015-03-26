@@ -1,14 +1,14 @@
 ﻿#include "VocabularyTree.h"
 
 //==========================functions in class vocabularyTree========================
-void vocabularyTree::buildTree(double** features, int nFeatures, int nBranch, int depth, int featureLength)
+void vocabularyTree::buildTree(double*** features, int nFeatures, int nBranch, int depth, int featureLength)
 {
 	featureClustering* feature2Cluster;
 	feature2Cluster = new featureClustering[nFeatures];
 	for(int i = 0; i < nFeatures; i++)
 	{
 		feature2Cluster[i].label = 0;
-		feature2Cluster[i].feature = features[i];
+		//feature2Cluster[i].feature = features[i];
 	}
 
 	buildRecursion(0, root, feature2Cluster, nFeatures, nBranch, featureLength);

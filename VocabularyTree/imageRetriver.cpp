@@ -1,19 +1,15 @@
 #include "VocabularyTree.h"
 
-struct cmpClass
-{
-	bool cmp(const double a, const double b)
-	{
+struct cmpClass {
+	bool cmp(const double a, const double b) {
 		return (a > b);
 	}
 };
 
 //==========================functions in class imageRetriver========================
-void imageRetriver::buildDataBase(char* directoryPath)
-{
+void imageRetriver::buildDataBase(char* directoryPath) {
 	vector<string> imagePaths;
 	DirectoryList(directoryPath, imagePaths, ".jpg");
-	calIDF(imagePaths);
 
 	double** trainFeatures = NULL;
 	int nFeatures = getTrainFeatures(trainFeatures, imagePaths);
@@ -22,8 +18,7 @@ void imageRetriver::buildDataBase(char* directoryPath)
 	addFeature2DataBase(tfidfVector);
 }
 
-vector<string> imageRetriver::queryImage(const char* imagePath)
-{
+vector<string> imageRetriver::queryImage(const char* imagePath) {
 	vector<string> ans;
 	IplImage* img = cvLoadImage(imagePath);
 	struct feature* feat = NULL;
@@ -37,8 +32,7 @@ vector<string> imageRetriver::queryImage(const char* imagePath)
 	multimap<double, string, cmpClass> candidates;
 	map<vector<double>, string>::iterator iter; 
 	double maxDistance = 1e20;
-	for(iter = imageDatabase.begin(); iter != imageDatabase.end(); iter++)
-	{
+	for(iter = imageDatabase.begin(); iter != imageDatabase.end(); iter++) {
 		vector<double> cur = iter->first;
 		double distance = vector_sqr_distance(cur, tfidfVector);
 		candidates.insert(make_pair(distance, iter->second));
@@ -46,8 +40,7 @@ vector<string> imageRetriver::queryImage(const char* imagePath)
 
 	int count = 0;
 	multimap<double, string>::iterator iter1;
-	for(iter1 = candidates.begin(); iter1 != candidates.end(); iter1++)
-	{
+	for(iter1 = candidates.begin(); iter1 != candidates.end(); iter1++) {
 		ans.push_back(iter1->second);
 		count++;
 		if(count == ANSNUM)
@@ -57,63 +50,51 @@ vector<string> imageRetriver::queryImage(const char* imagePath)
 	return ans;
 }
 
-int imageRetriver::getTrainFeatures(double** trainFeatures, vector<string> imagePaths)
-{
+int imageRetriver::getTrainFeatures(double** trainFeatures, vector<string> imagePaths) {
 	int nImages = imagePaths.size();
 	trainFeatures = new double*[nImages * MAXFEATNUM];
 	nFeatures = new int[nImages];
 	int featCount = 0;
 
-	for(int i = 0; i < nImages; i++)
-	{
+	for(int i = 0; i < nImages; i++) {
 		IplImage* img = cvLoadImage(imagePaths[i].c_str());
 		struct feature* feat = NULL;
 		int n = sift_features(img, &feat);
-		for(int j = 0; j < n; j++)
-		{
+		for(int j = 0; j < n; j++) {
 			trainFeatures[featCount] = feat[j].descr;
 			featCount++;
 		}
 		cvReleaseImage(&img);
 		nFeatures[i] = n;
 	}
-
+	calIDF();
 	return featCount;
 }
 
-vector<vector<double>> imageRetriver::getTFIDFVector(double** features, int nImages)
-{ 
+vector<vector<double>> imageRetriver::getTFIDFVector(double** features, int nImages) { 
 	calIDF();
 	vector<vector<double>> tfidfVector;
 	int startNum = 0;
-	for(int i = 0; i < nImages; i++)
-	{
-		vector<double> oneVector = getOneTFIDFVector(features[i], nFeatures[i], startNum);
+	for(int i = 0; i < nImages; i++) {
+		vector<double> oneVector = getOneTFIDFVector(features[i], nFeatures[i], startNum, 0);
 		tfidfVector.push_back(oneVector);
 		startNum += nFeatures[i];
 	}
 	return tfidfVector;
 }
 
-vector<double> imageRetriver::getOneTFIDFVector(double* oneImageFeat, int featNum, int startNum)
-{
+vector<double> imageRetriver::getOneTFIDFVector(double* oneImageFeat, int featNum, int startNum, int depth) {
 	vector<double> tfidfVector;
 
 	return tfidfVector;
 }
 
-void imageRetriver::addFeature2DataBase(vector<vector<double>> tfidfVector)
-{
+void imageRetriver::addFeature2DataBase(vector<vector<double>> tfidfVector) {
 
 }
 
-void calIDF(vector<string> imagePaths)
-{
-	int size = 0;
-	size = imagePaths.size();
-	for(int i = 0; i < size; i++)
-	{
-		feature* feat;
+void imageRetriver::calIDF(double** features, int totalFeatures) {
+	for(int i = 0; i < totalFeatures; i++) {
 		
 	}
 }

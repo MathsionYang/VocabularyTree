@@ -4,8 +4,7 @@
 #define MAX_ITER 100000
 #define THRESHOLD 0.01   //not sure
 
-double sqr_distance(double* vector1, double* vector2, int featureLength)
-{
+double sqr_distance(double* vector1, double* vector2, int featureLength) {
 	double sum = 0;
 	for(int i = 0; i < featureLength; i++)
 		sum += (vector1[i] - vector2[i]) * (vector1[1] - vector2[i]);
@@ -13,8 +12,7 @@ double sqr_distance(double* vector1, double* vector2, int featureLength)
 	return sum;
 }
 
-double vector_sqr_distance(vector<double> vector1, vector<double> vector2)
-{
+double vector_sqr_distance(vector<double> vector1, vector<double> vector2) {
 	int size = vector1.size();
 	double sum = 0;
 	for(int i = 0; i < size; i++)
@@ -23,16 +21,13 @@ double vector_sqr_distance(vector<double> vector1, vector<double> vector2)
 	return sum;
 }
 
-void node_add(double* &vector1, double* &vector2, int featureLength)
-{
-	for(int i = 0; i < featureLength; i++)
-	{
+void node_add(double* &vector1, double* &vector2, int featureLength) {
+	for(int i = 0; i < featureLength; i++) {
 		vector1[i] += vector2[i];
 	}
 }
 
-void node_divide_cnt(double* &vector1, int cnt, int featureLength)
-{
+void node_divide_cnt(double* &vector1, int cnt, int featureLength) {
 	if(cnt == 0)
 		cnt = 1e-3;
 
@@ -40,17 +35,14 @@ void node_divide_cnt(double* &vector1, int cnt, int featureLength)
 		vector1[i] /= cnt;
 }
 
-void kmeans(featureClustering* features, int nFeatures, int branchNum, int* nums, int featureLength, double** clusterCenter)
-{
+void kmeans(featureClustering* features, int nFeatures, int branchNum, int* nums, int featureLength, double** clusterCenter) {
 	nums = new int[branchNum];
 	for(int i = 0; i < branchNum; i++)
 		nums[i] = 0;
 
-	if(nFeatures < branchNum)
-	{
+	if(nFeatures < branchNum) {
 		clusterCenter = new double*[nFeatures];
-		for(int i = 0; i < nFeatures; i++)
-		{
+		for(int i = 0; i < nFeatures; i++) {
 			clusterCenter[i] = features[i].feature;
 		}
 		return;
@@ -65,28 +57,23 @@ void kmeans(featureClustering* features, int nFeatures, int branchNum, int* nums
 
 	double** tempCenters;
 	tempCenters = new double*[branchNum];
-	for(int i = 0; i < branchNum; i++)
-	{
+	for(int i = 0; i < branchNum; i++) {
 		tempCenters[i] = new double[featureLength];
 		for(int j = 0; j < featureLength; j++)
 			tempCenters[i][j] = 0;
 	}
 
-	for(int iter = 0; iter < MAX_ITER; iter++)
-	{
+	for(int iter = 0; iter < MAX_ITER; iter++) {
 		memset(cnt, 0, sizeof(int) * branchNum);
 		for(int i = 0; i < branchNum; i++)
 			memset(tempCenters, 0, sizeof(double) * featureLength);
 
-		for(int i = 0; i < featureLength; i++)
-		{
+		for(int i = 0; i < featureLength; i++) {
 			double mindis = 1e20;
 			int minIndex = 0;
-			for(int j = 0; j < branchNum; j++)
-			{
+			for(int j = 0; j < branchNum; j++) {
 				double dis = sqr_distance(clusterCenter[i], features[i].feature, featureLength);
-				if(dis < mindis)
-				{
+				if(dis < mindis) {
 					mindis = dis;
 					minIndex = j;
 				}
@@ -104,8 +91,7 @@ void kmeans(featureClustering* features, int nFeatures, int branchNum, int* nums
 			sum += sqr_distance(tempCenters[i], clusterCenter[i], featureLength);
 		clusterCenter = tempCenters;
 
-		if(sum < THRESHOLD || iter == MAX_ITER)
-		{
+		if(sum < THRESHOLD || iter == MAX_ITER) {
 			for(int i = 0; i < nFeatures; i++)
 				nums[i] = cnt[i];
 			break;
@@ -117,14 +103,12 @@ void kmeans(featureClustering* features, int nFeatures, int branchNum, int* nums
 	return;
 }
 
-int cmp(const void* a, const void* b)
-{
+int cmp(const void* a, const void* b) {
 	return ((featureClustering*)a)->label - ((featureClustering*)b)->label;
 }
 
 #define LEN 1024
-bool DirectoryList(LPCSTR Path, vector<string>& path, char* ext)
-{
+bool DirectoryList(LPCSTR Path, vector<string>& path, char* ext) {
 	WIN32_FIND_DATA FindData;
 	HANDLE hError;
 	int FileCount = 0;
@@ -133,16 +117,13 @@ bool DirectoryList(LPCSTR Path, vector<string>& path, char* ext)
 	strcpy(FilePathName, Path);
 	strcat(FilePathName, "\\*.*");
 	hError = FindFirstFile(FilePathName, &FindData);
-	if (hError == INVALID_HANDLE_VALUE)
-	{
+	if (hError == INVALID_HANDLE_VALUE) {
 		printf("error");
 		return 0;
 	}
-	while(::FindNextFile(hError, &FindData))
-	{
+	while(::FindNextFile(hError, &FindData)) {
 		if (strcmp(FindData.cFileName, ".") == 0 
-		 || strcmp(FindData.cFileName, "..") == 0 )
-		{
+		 || strcmp(FindData.cFileName, "..") == 0 ) {
 			continue;
 		}
   
@@ -152,8 +133,7 @@ bool DirectoryList(LPCSTR Path, vector<string>& path, char* ext)
 		if(temp.find(ext) != temp.npos)
 			path.push_back(string(temp));
 
-		if (FindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-		{
+		if (FindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
 			printf("<Dir>");
 			DirectoryList(FullPathName, path, ext);
 		}

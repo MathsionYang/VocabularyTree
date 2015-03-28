@@ -22,8 +22,7 @@ using namespace std;
 #define ANSNUM 20     //the most similiar 20 images
 #define MAXFEATNUM 1500
 
-class vocabularyTreeNode
-{
+class vocabularyTreeNode {
 public:
 	int nBranch;
 	int nFeatures;
@@ -32,8 +31,7 @@ public:
 	vocabularyTreeNode** children;
 
 	vocabularyTreeNode() {}
-	vocabularyTreeNode(int branchNum, int featureLength, double* features)
-	{
+	vocabularyTreeNode(int branchNum, int featureLength, double* features) {
 		nBranch = branchNum;
 		nFeatures = featureLength;
 		feature = features;
@@ -43,16 +41,14 @@ public:
 	double idf;
 };
 
-class featureClustering
-{
+class featureClustering {
 public:
 	double* feature;
 	int label;
 	featureClustering() { feature = NULL; label = 0; }
 };
 
-class vocabularyTree
-{
+class vocabularyTree {
 public:
 	vocabularyTreeNode* root;
 	int nNodes;
@@ -62,10 +58,11 @@ public:
 	vocabularyTree() { root = NULL; }
 	void buildTree(double** features, int nFeatures, int nBranch, int depth, int featureLength);
 	void buildRecursion(int curDepth, vocabularyTreeNode* curNode, featureClustering* features, int nFeatures, int branchNum, int featureLength);
+	void clearTF();
+	vector<double> getTFIDF();
 };
 
-class imageRetriver
-{
+class imageRetriver {
 public:
 	vocabularyTree* tree;
 	map<vector<double>, string> imageDatabase;
@@ -81,9 +78,10 @@ public:
 
 	int getTrainFeatures(double** features, vector<string> imagePaths);
 	vector<vector<double>> getTFIDFVector(double** features, int nImages);
-	vector<double> getOneTFIDFVector(double* oneImageFeat, int featNums, int nStart); 
+	vector<double> getOneTFIDFVector(double* oneImageFeat, int featNums, int nStart, int depth); 
 	void addFeature2DataBase(vector<vector<double>> tfidfVector);
-	void calIDF(vector<string> imagePaths);
+	void calIDF(double** features, int totalFeatures);
+
 };
 
 extern double sqr_distance(double* vector1, double* vector2, int featureLength);

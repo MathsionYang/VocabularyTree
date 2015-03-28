@@ -1,7 +1,6 @@
 #include "VocabularyTree.h"
 
-int main()
-{
+int main() {
 	//imageRetriver retriver;
 	//retriver.buildDataBase("F:\data");
 	//string queryPath;

@@ -38,6 +38,7 @@ void vocabularyTree::clearTF() {
 
 void vocabularyTree::getTFIDF() {
 
+
 }
 
 

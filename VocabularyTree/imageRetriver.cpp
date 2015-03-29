@@ -71,6 +71,34 @@ int imageRetriver::getTrainFeatures(double** trainFeatures, vector<string> image
 	return featCount;
 }
 
+void imageRetriver::HKAdd(double* feature, int depth, vocabularyTreeNode* cur) {
+	if(depth == tree->depth)
+		return;
+	if(cur->add)
+		cur->tf++;
+	int minIndex = 0;
+	double minDis = 1e20;
+	for(int i = 0; i < cur->nBranch; i++) {
+		double curDis = sqr_distance(feature, (cur->children[i])->feature);
+		if(curDis < minDis) {
+			curDis = minDis;
+			minIndex = i;
+		}
+	}
+	HKAdd(feature, depth + 1, cur->children[minIndex]);
+}
+
+void imageRetriver::calIDF(double** features) {
+	int featureCount = 0;
+	for(int i = 0; i < nImages; i++) {
+		tree->clearTF();
+		for(int j = 0; j < nFeatures[i]; j++) {
+			HKAdd(features[featureCount], 0, tree->root);
+			featureCount++;
+		}
+	}
+}
+
 vector<vector<double>> imageRetriver::getTFIDFVector(double** features, int nImages) { 
 	calIDF();
 	vector<vector<double>> tfidfVector;
@@ -93,8 +121,3 @@ void imageRetriver::addFeature2DataBase(vector<vector<double>> tfidfVector) {
 
 }
 
-void imageRetriver::calIDF(double** features, int totalFeatures) {
-	for(int i = 0; i < totalFeatures; i++) {
-		
-	}
-}

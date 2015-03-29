@@ -39,6 +39,7 @@ public:
 
 	double tf;
 	double idf;
+	bool add;                     //the tf varible can be added per image once
 };
 
 class featureClustering {
@@ -66,10 +67,10 @@ class imageRetriver {
 public:
 	vocabularyTree* tree;
 	map<vector<double>, string> imageDatabase;
-	vector<string> imagePath;
+	vector<string> imagePath; 
+	int featureLength;  
 	int nImages;
-	int featureLength;
-	int *nFeatures;
+	int *nFeatures;                        //features per image
 	int totalFeatures;
 
 	imageRetriver() { tree = NULL; nImages = 0; featureLength = 0; nFeatures = NULL;}
@@ -77,11 +78,12 @@ public:
 	vector<string> queryImage( const char* imagePath ); 
 
 	int getTrainFeatures(double** features, vector<string> imagePaths);
+	void calIDF(double** features);
 	vector<vector<double>> getTFIDFVector(double** features, int nImages);
 	vector<double> getOneTFIDFVector(double* oneImageFeat, int featNums, int nStart, int depth); 
 	void addFeature2DataBase(vector<vector<double>> tfidfVector);
-	void calIDF(double** features, int totalFeatures);
 
+	void HKAdd(double* feature, int depth, vocabularyTreeNode* node);
 };
 
 extern double sqr_distance(double* vector1, double* vector2, int featureLength);

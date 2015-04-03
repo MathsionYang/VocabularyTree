@@ -59,8 +59,8 @@ public:
 	vocabularyTree() { root = NULL; }
 	void buildTree(double** features, int nFeatures, int nBranch, int depth, int featureLength);
 	void buildRecursion(int curDepth, vocabularyTreeNode* curNode, featureClustering* features, int nFeatures, int branchNum, int featureLength);
-	void clearTF();
-	vector<double> getTFIDF();
+	void clearTF(vocabularyTreeNode* root, int curDepth);
+	void getTFIDF(vector<double>& tfidf, vocabularyTreeNode* curNode, int curDepth);
 };
 
 class imageRetriver {

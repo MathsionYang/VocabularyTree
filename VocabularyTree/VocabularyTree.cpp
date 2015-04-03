@@ -32,13 +32,23 @@ void vocabularyTree::buildRecursion(int curDepth, vocabularyTreeNode* curNode, f
 	}
 }
 
-void vocabularyTree::clearTF() {
-
+void vocabularyTree::clearTF(vocabularyTreeNode* curNode, int curDepth) {
+	if(curDepth == depth)
+		return;
+	curNode->tf = 0;
+	for(int i = 0; i < curNode->nBranch; i++) {
+		clearTF(curNode->children[i], curDepth + 1);
+	}
 }
 
-void vocabularyTree::getTFIDF() {
+void vocabularyTree::getTFIDF(vector<double>& tfidf, vocabularyTreeNode* curNode, int curDepth) {
+	if(curDepth == depth)
+		return;
 
-
+	tfidf.push_back(curNode->tf * curNode->idf);
+	for(int i = 0; i < curNode->nBranch; i++) {
+		getTFIDF(tfidf, curNode->children[i], curDepth + 1);
+	}
 }
 
 

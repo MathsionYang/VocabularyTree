@@ -91,7 +91,7 @@ void imageRetriver::HKAdd(double* feature, int depth, vocabularyTreeNode* cur) {
 void imageRetriver::calIDF(double** features) {
 	int featureCount = 0;
 	for(int i = 0; i < nImages; i++) {
-		tree->clearTF();
+		tree->clearTF(tree->root, 0);
 		for(int j = 0; j < nFeatures[i]; j++) {
 			HKAdd(features[featureCount], 0, tree->root);
 			featureCount++;

@@ -78,12 +78,13 @@ public:
 	vector<string> queryImage( const char* imagePath ); 
 
 	int getTrainFeatures(double** features, vector<string> imagePaths);
-	void calIDF(double** features);
+	void calIDF(double** features);               //cal IDF for each node in the tree
 	vector<vector<double>> getTFIDFVector(double** features, int nImages);
-	vector<double> getOneTFIDFVector(double* oneImageFeat, int featNums, int nStart, int depth); 
+	vector<double> getOneTFIDFVector(double** features, int featNums, int nStart); 
 	void addFeature2DataBase(vector<vector<double>> tfidfVector);
 
 	void HKAdd(double* feature, int depth, vocabularyTreeNode* node);
+	void HKDiv(vocabularyTreeNode* curNode, int curDepth);
 };
 
 extern double sqr_distance(double* vector1, double* vector2, int featureLength);

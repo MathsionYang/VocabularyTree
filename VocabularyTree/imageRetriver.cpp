@@ -27,7 +27,7 @@ vector<string> imageRetriver::queryImage(const char* imagePath) {
 	for(int i = 0; i < nFeatures; i++)
 		queryFeat[i] = feat[i].descr;
 
-	vector<double> tfidfVector = getOneTFIDFVector(queryFeat[0], nFeatures, 0);
+	vector<double> tfidfVector = getOneTFIDFVector(queryFeat, nFeatures, 0);
 
 	multimap<double, string, cmpClass> candidates;
 	map<vector<double>, string>::iterator iter; 
@@ -71,7 +71,7 @@ int imageRetriver::getTrainFeatures(double** trainFeatures, vector<string> image
 	return featCount;
 }
 
-void imageRetriver::HKAdd(double* feature, int depth, vocabularyTreeNode* cur) {
+void imageRetriver::HKAdd(double* feature, int depth, vocabularyTreeNode* cur) {  //add tf value for each node
 	if(depth == tree->depth)
 		return;
 	if(cur->add)
@@ -88,36 +88,50 @@ void imageRetriver::HKAdd(double* feature, int depth, vocabularyTreeNode* cur) {
 	HKAdd(feature, depth + 1, cur->children[minIndex]);
 }
 
+void imageRetriver::HKDiv(vocabularyTreeNode* curNode, int curDepth) {
+	if(curDepth == tree->depth)
+		return;
+	curNode->idf = 1.0 * nImages / curNode->tf;
+	for(int i = 0; i < curNode->nBranch; i++) {
+		HKDiv(curNode->children[i], curDepth + 1); 
+	}
+}
+
 void imageRetriver::calIDF(double** features) {
 	int featureCount = 0;
 	for(int i = 0; i < nImages; i++) {
 		tree->clearTF(tree->root, 0);
 		for(int j = 0; j < nFeatures[i]; j++) {
-			HKAdd(features[featureCount], 0, tree->root);
+			HKAdd(features[featureCount], 0, tree->root);   //add the number of images at least one descriptor path through for each node
 			featureCount++;
 		}
 	}
+	HKDiv(tree->root, 0);    //cal N / Ni, where N is the number of total images and Ni is tf
 }
 
 vector<vector<double>> imageRetriver::getTFIDFVector(double** features, int nImages) { 
-	calIDF();
+	calIDF(features);        //calculate idf for each node in the tree 
 	vector<vector<double>> tfidfVector;
-	int startNum = 0;
+	int featureCount = 0;
 	for(int i = 0; i < nImages; i++) {
-		vector<double> oneVector = getOneTFIDFVector(features[i], nFeatures[i], startNum, 0);
-		tfidfVector.push_back(oneVector);
-		startNum += nFeatures[i];
+		vector<double> oneImgTFIDF = getOneTFIDFVector(features, nFeatures[i], featureCount);
+		tfidfVector.push_back(oneImgTFIDF);
 	}
 	return tfidfVector;
 }
 
-vector<double> imageRetriver::getOneTFIDFVector(double* oneImageFeat, int featNum, int startNum, int depth) {
-	vector<double> tfidfVector;
-
-	return tfidfVector;
+vector<double> imageRetriver::getOneTFIDFVector(double** features, int featNums, int nStart) {
+	tree->clearTF(tree->root, 0);
+	for(int i = 0; i < featNums; i++) 
+		HKAdd(features[nStart + featNums], 0, tree->root);
+	vector<double> oneImgTFIDF;
+	tree->getTFIDF(oneImgTFIDF, tree->root, 0);
+	return oneImgTFIDF;
 }
 
 void imageRetriver::addFeature2DataBase(vector<vector<double>> tfidfVector) {
-
+	for(int i = 0; i < nImages; i++) {
+		imageDatabase.insert(make_pair(tfidfVector[i], imagePath[i]));
+	}
 }
 

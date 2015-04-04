@@ -6,7 +6,7 @@ void vocabularyTree::buildTree(double** features, int nFeatures, int nBranch, in
 	feature2Cluster = new featureClustering[nFeatures];
 	for(int i = 0; i < nFeatures; i++) {
 		feature2Cluster[i].label = 0;
-		//feature2Cluster[i].feature = features[i];
+		feature2Cluster[i].feature = features[i];
 	}
 
 	buildRecursion(0, root, feature2Cluster, nFeatures, nBranch, featureLength);
@@ -28,7 +28,7 @@ void vocabularyTree::buildRecursion(int curDepth, vocabularyTreeNode* curNode, f
 	for(int i = 0; i < nBranch; i++) {
 		curNode->children[i] = new vocabularyTreeNode(branchNum, featureLength, clusterCenter[i]);
 		buildRecursion(curDepth + 1, curNode->children[i], features + offset, nums[i], branchNum, featureLength);
-		offset += nums[i] * sizeof(featureClustering);
+		offset += nums[i];
 	}
 }
 

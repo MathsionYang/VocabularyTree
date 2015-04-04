@@ -1,16 +1,15 @@
 #include "VocabularyTree.h"
 
-struct cmpClass {
-	bool cmp(const double a, const double b) {
-		return (a > b);
-	}
-};
-
 //==========================functions in class imageRetriver========================
 void imageRetriver::buildDataBase(char* directoryPath) {
+	printf("%s\n", directoryPath);
 	vector<string> imagePaths;
 	DirectoryList(directoryPath, imagePaths, ".jpg");
-
+	//----------------debug--------------
+	for(int i = 0; i < imagePath.size(); i++) {
+		cout << imagePaths[i] << endl;
+	}
+	//-----------------------------------
 	double** trainFeatures = NULL;
 	int nFeatures = getTrainFeatures(trainFeatures, imagePaths);
 	tree->buildTree(trainFeatures, nFeatures, tree->nBranch, tree->depth, featureLength);
@@ -29,7 +28,7 @@ vector<string> imageRetriver::queryImage(const char* imagePath) {
 
 	vector<double> tfidfVector = getOneTFIDFVector(queryFeat, nFeatures, 0);
 
-	multimap<double, string, cmpClass> candidates;
+	multimap<double, string> candidates;
 	map<vector<double>, string>::iterator iter; 
 	double maxDistance = 1e20;
 	for(iter = imageDatabase.begin(); iter != imageDatabase.end(); iter++) {
@@ -57,6 +56,9 @@ int imageRetriver::getTrainFeatures(double** trainFeatures, vector<string> image
 	int featCount = 0;
 
 	for(int i = 0; i < nImages; i++) {
+		//----------debug-----------
+		cout << imagePath[i] << endl;
+		//--------------------------
 		IplImage* img = cvLoadImage(imagePaths[i].c_str());
 		struct feature* feat = NULL;
 		int n = sift_features(img, &feat);
@@ -67,7 +69,6 @@ int imageRetriver::getTrainFeatures(double** trainFeatures, vector<string> image
 		cvReleaseImage(&img);
 		nFeatures[i] = n;
 	}
-	calIDF();
 	return featCount;
 }
 
@@ -79,7 +80,7 @@ void imageRetriver::HKAdd(double* feature, int depth, vocabularyTreeNode* cur) {
 	int minIndex = 0;
 	double minDis = 1e20;
 	for(int i = 0; i < cur->nBranch; i++) {
-		double curDis = sqr_distance(feature, (cur->children[i])->feature);
+		double curDis = sqr_distance(feature, (cur->children[i])->feature, featureLength);
 		if(curDis < minDis) {
 			curDis = minDis;
 			minIndex = i;

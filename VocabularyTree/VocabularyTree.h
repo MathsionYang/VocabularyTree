@@ -22,6 +22,8 @@ using namespace std;
 #define ANSNUM 20     //the most similiar 20 images
 #define MAXFEATNUM 1500
 
+#define DEBUG 0
+
 class vocabularyTreeNode {
 public:
 	int nBranch;

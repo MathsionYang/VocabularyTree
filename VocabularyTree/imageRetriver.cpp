@@ -3,15 +3,10 @@
 //==========================functions in class imageRetriver========================
 void imageRetriver::buildDataBase(char* directoryPath) {
 	printf("%s\n", directoryPath);
-	vector<string> imagePaths;
-	DirectoryList(directoryPath, imagePaths, ".jpg");
-	//----------------debug--------------
-	for(int i = 0; i < imagePath.size(); i++) {
-		cout << imagePaths[i] << endl;
-	}
-	//-----------------------------------
+	vector<string> databaseImagePath;
+	DirectoryList("F:/data/images", databaseImagePath, ".jpg");
 	double** trainFeatures = NULL;
-	int nFeatures = getTrainFeatures(trainFeatures, imagePaths);
+	int nFeatures = getTrainFeatures(trainFeatures, databaseImagePath);
 	tree->buildTree(trainFeatures, nFeatures, tree->nBranch, tree->depth, featureLength);
 	vector<vector<double>> tfidfVector = getTFIDFVector(trainFeatures, nFeatures);
 	addFeature2DataBase(tfidfVector);
@@ -51,14 +46,13 @@ vector<string> imageRetriver::queryImage(const char* imagePath) {
 
 int imageRetriver::getTrainFeatures(double** trainFeatures, vector<string> imagePaths) {
 	int nImages = imagePaths.size();
+
 	trainFeatures = new double*[nImages * MAXFEATNUM];
 	nFeatures = new int[nImages];
 	int featCount = 0;
 
 	for(int i = 0; i < nImages; i++) {
-		//----------debug-----------
-		cout << imagePath[i] << endl;
-		//--------------------------
+		cout << imagePaths[i] << endl;
 		IplImage* img = cvLoadImage(imagePaths[i].c_str());
 		struct feature* feat = NULL;
 		int n = sift_features(img, &feat);

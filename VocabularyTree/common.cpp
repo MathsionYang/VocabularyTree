@@ -1,4 +1,4 @@
-#include "VocabularyTree.h"
+﻿#include "VocabularyTree.h"
 
 //==========================other functions===================================
 #define MAX_ITER 100000
@@ -130,7 +130,7 @@ bool DirectoryList(LPCSTR Path, vector<string>& path, char* ext) {
 		wsprintf(FullPathName, "%s\\%s", Path,FindData.cFileName);
 		FileCount++;
 		string temp = FullPathName;
-		if(temp.find(ext) != temp.npos)
+		if(temp.find(ext) != temp.npos) 
 			path.push_back(string(temp));
 
 		if (FindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {

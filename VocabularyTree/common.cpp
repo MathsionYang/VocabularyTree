@@ -36,6 +36,7 @@ void node_divide_cnt(double* &vector1, int cnt, int featureLength) {
 }
 
 void kmeans(featureClustering* features, int nFeatures, int branchNum, int* nums, int featureLength, double** clusterCenter) {
+	cout << branchNum << endl;
 	nums = new int[branchNum];
 	for(int i = 0; i < branchNum; i++)
 		nums[i] = 0;
@@ -66,7 +67,7 @@ void kmeans(featureClustering* features, int nFeatures, int branchNum, int* nums
 	for(int iter = 0; iter < MAX_ITER; iter++) {
 		memset(cnt, 0, sizeof(int) * branchNum);
 		for(int i = 0; i < branchNum; i++)
-			memset(tempCenters, 0, sizeof(double) * featureLength);
+			memset(tempCenters[i], 0, sizeof(double) * featureLength);
 
 		for(int i = 0; i < featureLength; i++) {
 			double mindis = 1e20;

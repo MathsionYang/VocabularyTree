@@ -8,18 +8,15 @@ void vocabularyTree::buildTree(double** features, int nFeatures, int nBranch, in
 		feature2Cluster[i].label = 0;
 		feature2Cluster[i].feature = features[i];
 	}
-
 	buildRecursion(0, root, feature2Cluster, nFeatures, nBranch, featureLength);
 }
 
 void vocabularyTree::buildRecursion(int curDepth, vocabularyTreeNode* curNode, featureClustering* features, int nFeatures, int branchNum, int featureLength) {
 	if(curDepth == depth)
 		return;
-	
 	int* nums;
 	nums = new int[branchNum];
 	double** clusterCenter = NULL;
-
 	kmeans(features, nFeatures, branchNum, nums, featureLength, clusterCenter);
 	qsort(features, nFeatures, sizeof(featureClustering*), cmp);
 

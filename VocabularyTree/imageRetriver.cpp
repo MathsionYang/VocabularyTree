@@ -7,6 +7,9 @@ void imageRetriver::buildDataBase(char* directoryPath) {
 	DirectoryList("F:/data/images", databaseImagePath, ".jpg");
 	double** trainFeatures = NULL;
 	int nFeatures = getTrainFeatures(trainFeatures, databaseImagePath);
+#ifdef DEBUG
+	printf("nFeatures %d\n", nFeatures);
+#endif
 	tree->buildTree(trainFeatures, nFeatures, tree->nBranch, tree->depth, featureLength);
 	vector<vector<double>> tfidfVector = getTFIDFVector(trainFeatures, nFeatures);
 	addFeature2DataBase(tfidfVector);
@@ -44,13 +47,17 @@ vector<string> imageRetriver::queryImage(const char* imagePath) {
 	return ans;
 }
 
-int imageRetriver::getTrainFeatures(double** trainFeatures, vector<string> imagePaths) {
-	int nImages = imagePaths.size();
+int imageRetriver::getTrainFeatures(double** &trainFeatures, vector<string> imagePaths) {
+	nImages = imagePaths.size();
+
+#ifdef DEBUG              //less images for faster speed in debug
+	nImages /= 100;
+	printf("total images %d\n", nImages);
+#endif
 
 	trainFeatures = new double*[nImages * MAXFEATNUM];
 	nFeatures = new int[nImages];
 	int featCount = 0;
-
 	for(int i = 0; i < nImages; i++) {
 		cout << imagePaths[i] << endl;
 		IplImage* img = cvLoadImage(imagePaths[i].c_str());
@@ -63,6 +70,7 @@ int imageRetriver::getTrainFeatures(double** trainFeatures, vector<string> image
 		cvReleaseImage(&img);
 		nFeatures[i] = n;
 	}
+
 	return featCount;
 }
 

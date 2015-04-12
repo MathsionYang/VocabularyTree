@@ -2,7 +2,7 @@
 
 //==========================other functions===================================
 #define MAX_ITER 100000
-#define THRESHOLD 0.01   //not sure
+#define ENDTHRESHOLD 0.01   //not sure
 
 double sqr_distance(double* vector1, double* vector2, int featureLength) {
 	double sum = 0;
@@ -36,7 +36,6 @@ void node_divide_cnt(double* &vector1, int cnt, int featureLength) {
 }
 
 void kmeans(featureClustering* features, int nFeatures, int branchNum, int* nums, int featureLength, double** clusterCenter) {
-	cout << branchNum << endl;
 	nums = new int[branchNum];
 	for(int i = 0; i < branchNum; i++)
 		nums[i] = 0;
@@ -60,8 +59,7 @@ void kmeans(featureClustering* features, int nFeatures, int branchNum, int* nums
 	tempCenters = new double*[branchNum];
 	for(int i = 0; i < branchNum; i++) {
 		tempCenters[i] = new double[featureLength];
-		for(int j = 0; j < featureLength; j++)
-			tempCenters[i][j] = 0;
+		memset(tempCenters[i], 0, sizeof(double) * featureLength);
 	}
 
 	for(int iter = 0; iter < MAX_ITER; iter++) {
@@ -69,11 +67,11 @@ void kmeans(featureClustering* features, int nFeatures, int branchNum, int* nums
 		for(int i = 0; i < branchNum; i++)
 			memset(tempCenters[i], 0, sizeof(double) * featureLength);
 
-		for(int i = 0; i < featureLength; i++) {
+		for(int i = 0; i < nFeatures; i++) {
 			double mindis = 1e20;
 			int minIndex = 0;
 			for(int j = 0; j < branchNum; j++) {
-				double dis = sqr_distance(clusterCenter[i], features[i].feature, featureLength);
+				double dis = sqr_distance(clusterCenter[j], features[i].feature, featureLength);
 				if(dis < mindis) {
 					mindis = dis;
 					minIndex = j;
@@ -81,9 +79,15 @@ void kmeans(featureClustering* features, int nFeatures, int branchNum, int* nums
 			}
 			cnt[minIndex]++;
 			features[i].label = minIndex;
-			node_add(tempCenters[idx[i] = minIndex], features[i].feature, featureLength);
+			node_add(tempCenters[minIndex], features[i].feature, featureLength);
+			idx[i] = minIndex;
 		}
-
+#ifdef DEBUG
+		printf("iter %d times, nodes in each branch: ", iter);
+		for(int i = 0; i < branchNum; i++)
+			printf("%d ", cnt[i]);
+		printf("\n");
+#endif
 		for(int i = 0; i < branchNum; i++)
 			node_divide_cnt(tempCenters[i], cnt[i], featureLength);
 
@@ -91,9 +95,11 @@ void kmeans(featureClustering* features, int nFeatures, int branchNum, int* nums
 		for(int i = 0; i < branchNum; i++)
 			sum += sqr_distance(tempCenters[i], clusterCenter[i], featureLength);
 		clusterCenter = tempCenters;
-
-		if(sum < THRESHOLD || iter == MAX_ITER) {
-			for(int i = 0; i < nFeatures; i++)
+#ifdef DEBUG
+		printf("error: %lf\n", sum);
+#endif
+		if(sum < ENDTHRESHOLD || iter == MAX_ITER) {
+			for(int i = 0; i < branchNum; i++)
 				nums[i] = cnt[i];
 			break;
 		}

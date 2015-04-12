@@ -4,7 +4,7 @@
 void imageRetriver::buildDataBase(char* directoryPath) {
 	printf("%s\n", directoryPath);
 	vector<string> databaseImagePath;
-	DirectoryList("F:/data/images", databaseImagePath, ".jpg");
+	DirectoryList(directoryPath, databaseImagePath, ".jpg");
 	double** trainFeatures = NULL;
 	int nFeatures = getTrainFeatures(trainFeatures, databaseImagePath);
 #ifdef DEBUG

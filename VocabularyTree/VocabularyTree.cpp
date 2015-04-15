@@ -14,12 +14,27 @@ void vocabularyTree::buildTree(double** features, int nFeatures, int nBranch, in
 void vocabularyTree::buildRecursion(int curDepth, vocabularyTreeNode* curNode, featureClustering* features, int nFeatures, int branchNum, int featureLength) {
 	if(curDepth == depth)
 		return;
+#ifdef DEBUG
+	printf("depth %d\n", curDepth);
+#endif
 	int* nums;
 	nums = new int[branchNum];
 	double** clusterCenter = NULL;
 	kmeans(features, nFeatures, branchNum, nums, featureLength, clusterCenter);
 	qsort(features, nFeatures, sizeof(featureClustering*), cmp);
-
+	int ccount = 0;
+	for(int i = 0; i < branchNum; i++) {
+		cout << "nums: " << nums[i] << endl;
+		for(int j = 0; j < nums[i]; j++) {
+			cout << features[ccount].label << endl;
+			for(int k = 0; k < featureLength; k++) {
+				cout << features[ccount].feature[k] << " ";
+			}
+			;
+			cout << endl << endl << endl;
+			ccount++;
+		}
+	}
 	curNode->children = new vocabularyTreeNode*[branchNum];
 	int offset = 0;
 	for(int i = 0; i < nBranch; i++) {

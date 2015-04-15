@@ -61,7 +61,7 @@ public:
 	int nBranch;
 	int depth;
 
-	vocabularyTree() { root = NULL; nBranch = DEFAULTBRANCH; depth = DEFAULTDEPTH; }
+	vocabularyTree() { root = new vocabularyTreeNode(); nBranch = DEFAULTBRANCH; depth = DEFAULTDEPTH; }
 	void buildTree(double** features, int nFeatures, int nBranch, int depth, int featureLength);
 	void buildRecursion(int curDepth, vocabularyTreeNode* curNode, featureClustering* features, int nFeatures, int branchNum, int featureLength);
 	void clearTF(vocabularyTreeNode* root, int curDepth);

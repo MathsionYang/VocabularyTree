@@ -7,7 +7,7 @@
 double sqr_distance(double* vector1, double* vector2, int featureLength) {
 	double sum = 0;
 	for(int i = 0; i < featureLength; i++)
-		sum += (vector1[i] - vector2[i]) * (vector1[1] - vector2[i]);
+		sum += (vector1[i] - vector2[i]) * (vector1[i] - vector2[i]);
 
 	return sum;
 }
@@ -54,7 +54,7 @@ void kmeans(featureClustering* features, int nFeatures, int branchNum, int* nums
 	clusterCenter = new double*[branchNum];
 	for(int i = 0; i < branchNum; i++)
 		clusterCenter[i] = features[i].feature;
-
+	
 	double** tempCenters;
 	tempCenters = new double*[branchNum];
 	for(int i = 0; i < branchNum; i++) {
@@ -66,7 +66,6 @@ void kmeans(featureClustering* features, int nFeatures, int branchNum, int* nums
 		memset(cnt, 0, sizeof(int) * branchNum);
 		for(int i = 0; i < branchNum; i++)
 			memset(tempCenters[i], 0, sizeof(double) * featureLength);
-
 		for(int i = 0; i < nFeatures; i++) {
 			double mindis = 1e20;
 			int minIndex = 0;
@@ -94,11 +93,15 @@ void kmeans(featureClustering* features, int nFeatures, int branchNum, int* nums
 		double sum = 0;
 		for(int i = 0; i < branchNum; i++)
 			sum += sqr_distance(tempCenters[i], clusterCenter[i], featureLength);
-		clusterCenter = tempCenters;
 #ifdef DEBUG
-		printf("error: %lf\n", sum);
+		cout << "error: " << sum << endl;
 #endif
+		for(int i = 0; i < branchNum; i++)
+			for(int j = 0; j < featureLength; j++)
+				clusterCenter[i][j] = tempCenters[i][j]; 
+
 		if(sum < ENDTHRESHOLD || iter == MAX_ITER) {
+			cout << "wanglingyusima01" << endl;
 			for(int i = 0; i < branchNum; i++)
 				nums[i] = cnt[i];
 			break;

@@ -21,24 +21,15 @@ void vocabularyTree::buildRecursion(int curDepth, vocabularyTreeNode* curNode, f
 	nums = new int[branchNum];
 	double** clusterCenter = NULL;
 	kmeans(features, nFeatures, branchNum, nums, featureLength, clusterCenter);
-	qsort(features, nFeatures, sizeof(featureClustering*), cmp);
-	int ccount = 0;
-	for(int i = 0; i < branchNum; i++) {
-		cout << "nums: " << nums[i] << endl;
-		for(int j = 0; j < nums[i]; j++) {
-			cout << features[ccount].label << endl;
-			for(int k = 0; k < featureLength; k++) {
-				cout << features[ccount].feature[k] << " ";
-			}
-			;
-			cout << endl << endl << endl;
-			ccount++;
-		}
-	}
+	qsort(features, nFeatures, sizeof(featureClustering), cmp);
 	curNode->children = new vocabularyTreeNode*[branchNum];
 	int offset = 0;
 	for(int i = 0; i < nBranch; i++) {
 		curNode->children[i] = new vocabularyTreeNode(branchNum, featureLength, clusterCenter[i]);
+#ifdef DEBUG
+		printf("build new node, nums of features:%d depth %d\n", nums[i], curDepth);
+		system("pause");
+#endif
 		buildRecursion(curDepth + 1, curNode->children[i], features + offset, nums[i], branchNum, featureLength);
 		offset += nums[i];
 	}

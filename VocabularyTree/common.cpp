@@ -35,13 +35,17 @@ void node_divide_cnt(double* &vector1, int cnt, int featureLength) {
 		vector1[i] /= cnt;
 }
 
-void kmeans(featureClustering* features, int nFeatures, int branchNum, int* nums, int featureLength, double** clusterCenter) {
+void kmeans(featureClustering* &features, int nFeatures, int branchNum, int* &nums, int featureLength, double** &clusterCenter) {
 	nums = new int[branchNum];
 	for(int i = 0; i < branchNum; i++)
 		nums[i] = 0;
 
 	if(nFeatures < branchNum) {
-		clusterCenter = new double*[nFeatures];
+		clusterCenter = new double*[branchNum];
+		for(int i = 0; i < branchNum; i++) {
+			clusterCenter[i] = new double[featureLength];
+			memset(clusterCenter[i], 0, sizeof(double) * featureLength);
+		}
 		for(int i = 0; i < nFeatures; i++) {
 			clusterCenter[i] = features[i].feature;
 		}
@@ -101,7 +105,6 @@ void kmeans(featureClustering* features, int nFeatures, int branchNum, int* nums
 				clusterCenter[i][j] = tempCenters[i][j]; 
 
 		if(sum < ENDTHRESHOLD || iter == MAX_ITER) {
-			cout << "wanglingyusima01" << endl;
 			for(int i = 0; i < branchNum; i++)
 				nums[i] = cnt[i];
 			break;
@@ -110,6 +113,7 @@ void kmeans(featureClustering* features, int nFeatures, int branchNum, int* nums
 
 	delete[] idx;
 	delete[] cnt;
+	
 	return;
 }
 

@@ -10,6 +10,7 @@ void imageRetriver::buildDataBase(char* directoryPath) {
 #ifdef DEBUG
 	printf("nFeatures %d\n", nFeatures);
 #endif
+	
 	tree->buildTree(trainFeatures, nFeatures, tree->nBranch, tree->depth, featureLength);
 	vector<vector<double>> tfidfVector = getTFIDFVector(trainFeatures, nFeatures);
 	addFeature2DataBase(tfidfVector);

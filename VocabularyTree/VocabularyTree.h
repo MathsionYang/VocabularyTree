@@ -96,7 +96,7 @@ extern double sqr_distance(double* vector1, double* vector2, int featureLength);
 extern double vector_sqr_distance(vector<double> vector1, vector<double> vector2);
 extern void node_add(double* &vector1, double* &vector2, int featureLength);
 extern void node_divide_cnt(double* &vector1, int cnt, int featureLength);
-extern void kmeans(featureClustering* features, int nFeatures, int branchNum, int* nums, int featureLength, double** clusterCenter);
+extern void kmeans(featureClustering* &features, int nFeatures, int branchNum, int* &nums, int featureLength, double** &clusterCenter);
 extern int cmp(const void* a, const void* b);
 extern bool DirectoryList(LPCSTR Path, vector<string>& path, char* ext);
 

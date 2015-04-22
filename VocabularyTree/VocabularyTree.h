@@ -13,6 +13,7 @@
 #include <windows.h>
 #include <map>
 #include <vector>
+#include <math.h>
 
 using namespace std;
 
@@ -25,21 +26,24 @@ using namespace std;
 #define DEFAULTDEPTH 6
 #define DEFAULTFEATURELENGHT 128
 
-#define DEBUG
+//#define BUILDTREE
+#define BUILDDATABASE
 
 class vocabularyTreeNode {
 public:
 	int nBranch;
-	int nFeatures;
+	int featureLength;
 	double* feature;
 	double weight;
 	vocabularyTreeNode** children;
+	int featureNums;
 
 	vocabularyTreeNode() {}
-	vocabularyTreeNode(int branchNum, int featureLength, double* features) {
+	vocabularyTreeNode(int branchNum, int inputFeatureLength, double* features, int featureNumber) {
 		nBranch = branchNum;
-		nFeatures = featureLength;
+		featureLength = inputFeatureLength;
 		feature = features;
+		featureNums = featureNumber;
 	}
 
 	double tf;
@@ -66,6 +70,8 @@ public:
 	void buildRecursion(int curDepth, vocabularyTreeNode* curNode, featureClustering* features, int nFeatures, int branchNum, int featureLength);
 	void clearTF(vocabularyTreeNode* root, int curDepth);
 	void getTFIDF(vector<double>& tfidf, vocabularyTreeNode* curNode, int curDepth);
+	void clearADD(vocabularyTreeNode* root, int curDepth);
+	void printTree(vocabularyTreeNode* root, int curDepth);
 };
 
 class imageRetriver {

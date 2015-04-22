@@ -2,16 +2,17 @@
 
 //==========================functions in class imageRetriver========================
 void imageRetriver::buildDataBase(char* directoryPath) {
-	printf("%s\n", directoryPath);
 	vector<string> databaseImagePath;
 	DirectoryList(directoryPath, databaseImagePath, ".jpg");
 	double** trainFeatures = NULL;
+	printf("extract features...\n");
 	int nFeatures = getTrainFeatures(trainFeatures, databaseImagePath);
-#ifdef DEBUG
-	printf("nFeatures %d\n", nFeatures);
-#endif
-	
+
+	printf("build tree...\n");
 	tree->buildTree(trainFeatures, nFeatures, tree->nBranch, tree->depth, featureLength);
+	printf("build tree finished...\n");
+	
+	printf("build database...\n");
 	vector<vector<double>> tfidfVector = getTFIDFVector(trainFeatures, nFeatures);
 	addFeature2DataBase(tfidfVector);
 }
@@ -51,7 +52,7 @@ vector<string> imageRetriver::queryImage(const char* imagePath) {
 int imageRetriver::getTrainFeatures(double** &trainFeatures, vector<string> imagePaths) {
 	nImages = imagePaths.size();
 
-#ifdef DEBUG              //less images for faster speed in debug
+#ifndef EXPERIMENT              //less images for faster speed in debug
 	nImages /= 100;
 	printf("total images %d\n", nImages);
 #endif
@@ -78,14 +79,18 @@ int imageRetriver::getTrainFeatures(double** &trainFeatures, vector<string> imag
 void imageRetriver::HKAdd(double* feature, int depth, vocabularyTreeNode* cur) {  //add tf value for each node
 	if(depth == tree->depth)
 		return;
-	if(cur->add)
+	if(cur->add) {
 		cur->tf++;
+		cur->add = false;
+	}
 	int minIndex = 0;
 	double minDis = 1e20;
 	for(int i = 0; i < cur->nBranch; i++) {
+		if((cur->children[i])->featureNums == 0)
+			continue;
 		double curDis = sqr_distance(feature, (cur->children[i])->feature, featureLength);
 		if(curDis < minDis) {
-			curDis = minDis;
+			minDis = curDis;
 			minIndex = i;
 		}
 	}
@@ -95,7 +100,7 @@ void imageRetriver::HKAdd(double* feature, int depth, vocabularyTreeNode* cur) {
 void imageRetriver::HKDiv(vocabularyTreeNode* curNode, int curDepth) {
 	if(curDepth == tree->depth)
 		return;
-	curNode->idf = 1.0 * nImages / curNode->tf;
+	curNode->idf = 1.0 * nImages / (max(curNode->tf, 1));
 	for(int i = 0; i < curNode->nBranch; i++) {
 		HKDiv(curNode->children[i], curDepth + 1); 
 	}
@@ -104,7 +109,7 @@ void imageRetriver::HKDiv(vocabularyTreeNode* curNode, int curDepth) {
 void imageRetriver::calIDF(double** features) {
 	int featureCount = 0;
 	for(int i = 0; i < nImages; i++) {
-		tree->clearTF(tree->root, 0);
+		tree->clearADD(tree->root, 0);
 		for(int j = 0; j < nFeatures[i]; j++) {
 			HKAdd(features[featureCount], 0, tree->root);   //add the number of images at least one descriptor path through for each node
 			featureCount++;
@@ -114,12 +119,14 @@ void imageRetriver::calIDF(double** features) {
 }
 
 vector<vector<double>> imageRetriver::getTFIDFVector(double** features, int nImages) { 
-	calIDF(features);        //calculate idf for each node in the tree 
+	calIDF(features);        //calculate idf for each node in the tree
+	tree->printTree(tree->root, 0);
 	vector<vector<double>> tfidfVector;
 	int featureCount = 0;
 	for(int i = 0; i < nImages; i++) {
 		vector<double> oneImgTFIDF = getOneTFIDFVector(features, nFeatures[i], featureCount);
 		tfidfVector.push_back(oneImgTFIDF);
+		featureCount += nFeatures[i];
 	}
 	return tfidfVector;
 }
@@ -127,7 +134,7 @@ vector<vector<double>> imageRetriver::getTFIDFVector(double** features, int nIma
 vector<double> imageRetriver::getOneTFIDFVector(double** features, int featNums, int nStart) {
 	tree->clearTF(tree->root, 0);
 	for(int i = 0; i < featNums; i++) 
-		HKAdd(features[nStart + featNums], 0, tree->root);
+		HKAdd(features[nStart + i], 0, tree->root);
 	vector<double> oneImgTFIDF;
 	tree->getTFIDF(oneImgTFIDF, tree->root, 0);
 	return oneImgTFIDF;
@@ -138,4 +145,3 @@ void imageRetriver::addFeature2DataBase(vector<vector<double>> tfidfVector) {
 		imageDatabase.insert(make_pair(tfidfVector[i], imagePath[i]));
 	}
 }
-

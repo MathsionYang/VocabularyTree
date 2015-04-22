@@ -2,13 +2,13 @@
 
 //==========================other functions===================================
 #define MAX_ITER 100000
-#define ENDTHRESHOLD 0.01   //not sure
+#define ENDTHRESHOLD 0.0001   //not sure
 
 double sqr_distance(double* vector1, double* vector2, int featureLength) {
 	double sum = 0;
 	for(int i = 0; i < featureLength; i++)
 		sum += (vector1[i] - vector2[i]) * (vector1[i] - vector2[i]);
-
+	
 	return sum;
 }
 
@@ -29,10 +29,11 @@ void node_add(double* &vector1, double* &vector2, int featureLength) {
 
 void node_divide_cnt(double* &vector1, int cnt, int featureLength) {
 	if(cnt == 0)
-		cnt = 1e-3;
+		cnt = 1;
 
-	for(int i = 0; i < featureLength; i++)
+	for(int i = 0; i < featureLength; i++) {
 		vector1[i] /= cnt;
+	}
 }
 
 void kmeans(featureClustering* &features, int nFeatures, int branchNum, int* &nums, int featureLength, double** &clusterCenter) {
@@ -48,7 +49,12 @@ void kmeans(featureClustering* &features, int nFeatures, int branchNum, int* &nu
 		}
 		for(int i = 0; i < nFeatures; i++) {
 			clusterCenter[i] = features[i].feature;
+			features[i].label = i;
+			nums[i] = 1;
 		}
+#ifdef BUILDTREE
+		cout << "features is less than num of branches" << endl;
+#endif
 		return;
 	}
 
@@ -56,8 +62,9 @@ void kmeans(featureClustering* &features, int nFeatures, int branchNum, int* &nu
 	int* cnt = new int[branchNum];
 
 	clusterCenter = new double*[branchNum];
-	for(int i = 0; i < branchNum; i++)
+	for(int i = 0; i < branchNum; i++) {
 		clusterCenter[i] = features[i].feature;
+	}
 	
 	double** tempCenters;
 	tempCenters = new double*[branchNum];
@@ -68,10 +75,12 @@ void kmeans(featureClustering* &features, int nFeatures, int branchNum, int* &nu
 
 	for(int iter = 0; iter < MAX_ITER; iter++) {
 		memset(cnt, 0, sizeof(int) * branchNum);
-		for(int i = 0; i < branchNum; i++)
+		for(int i = 0; i < branchNum; i++) {
 			memset(tempCenters[i], 0, sizeof(double) * featureLength);
+		}
+		
 		for(int i = 0; i < nFeatures; i++) {
-			double mindis = 1e20;
+			double mindis = 1e10;
 			int minIndex = 0;
 			for(int j = 0; j < branchNum; j++) {
 				double dis = sqr_distance(clusterCenter[j], features[i].feature, featureLength);
@@ -85,20 +94,23 @@ void kmeans(featureClustering* &features, int nFeatures, int branchNum, int* &nu
 			node_add(tempCenters[minIndex], features[i].feature, featureLength);
 			idx[i] = minIndex;
 		}
-#ifdef DEBUG
+
+#ifdef BUILDTREE
 		printf("iter %d times, nodes in each branch: ", iter);
 		for(int i = 0; i < branchNum; i++)
 			printf("%d ", cnt[i]);
 		printf("\n");
 #endif
+
 		for(int i = 0; i < branchNum; i++)
 			node_divide_cnt(tempCenters[i], cnt[i], featureLength);
 
 		double sum = 0;
 		for(int i = 0; i < branchNum; i++)
 			sum += sqr_distance(tempCenters[i], clusterCenter[i], featureLength);
-#ifdef DEBUG
+#ifdef BUILDTREE
 		cout << "error: " << sum << endl;
+		
 #endif
 		for(int i = 0; i < branchNum; i++)
 			for(int j = 0; j < featureLength; j++)

@@ -2,8 +2,13 @@
 
 int main() {
 	imageRetriver retriver;
-	retriver.buildDataBase("D:\\data\\images");
+	retriver.buildDataBase("F:\\data\\images");
 	string queryPath;
+	cout << "type in the query image path:" << endl;
 	cin >> queryPath;
-	retriver.queryImage(queryPath.c_str());
+	vector<string> ans = retriver.queryImage(queryPath.c_str());
+	printAns(ans);
+
+	system("pause");
+	return 0;
 }

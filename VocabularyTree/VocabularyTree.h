@@ -24,10 +24,11 @@ using namespace std;
 #define MAXFEATNUM 10000
 #define DEFAULTBRANCH 10
 #define DEFAULTDEPTH 6
-#define DEFAULTFEATURELENGHT 128
+#define DEFAULTFEATURELENGH 128
 
 //#define BUILDTREE
 #define BUILDDATABASE
+//#define EXPERIMENT
 
 class vocabularyTreeNode {
 public:
@@ -38,7 +39,7 @@ public:
 	vocabularyTreeNode** children;
 	int featureNums;
 
-	vocabularyTreeNode() {}
+	vocabularyTreeNode() {nBranch = DEFAULTBRANCH; featureLength = DEFAULTFEATURELENGH;}
 	vocabularyTreeNode(int branchNum, int inputFeatureLength, double* features, int featureNumber) {
 		nBranch = branchNum;
 		featureLength = inputFeatureLength;
@@ -78,13 +79,13 @@ class imageRetriver {
 public:
 	vocabularyTree* tree;
 	map<vector<double>, string> imageDatabase;
-	vector<string> imagePath; 
+	vector<string> databaseImagePath; 
 	int featureLength;  
 	int nImages;
 	int *nFeatures;                        //features per image
 	int totalFeatures;
 
-	imageRetriver() { tree = new vocabularyTree(); nImages = 0; featureLength = DEFAULTFEATURELENGHT; nFeatures = NULL;}
+	imageRetriver() { tree = new vocabularyTree(); nImages = 0; featureLength = DEFAULTFEATURELENGH; nFeatures = NULL;}
 	void buildDataBase( char* directoryPath );
 	vector<string> queryImage( const char* imagePath ); 
 
@@ -105,5 +106,6 @@ extern void node_divide_cnt(double* &vector1, int cnt, int featureLength);
 extern void kmeans(featureClustering* &features, int nFeatures, int branchNum, int* &nums, int featureLength, double** &clusterCenter);
 extern int cmp(const void* a, const void* b);
 extern bool DirectoryList(LPCSTR Path, vector<string>& path, char* ext);
+extern void printAns(vector<string> ans);
 
 #endif

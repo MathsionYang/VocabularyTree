@@ -73,8 +73,6 @@ void vocabularyTree::clearADD(vocabularyTreeNode* curNode, int curDepth) {
 void vocabularyTree::printTree(vocabularyTreeNode* curNode, int curDepth) {
 	if(curDepth == depth)
 		return;
-	printf("%lf ", curNode->idf);
-	system("pause");
 	for(int i = 0; i < curNode->nBranch; i++)
 		printTree(curNode->children[i], curDepth + 1);
 }

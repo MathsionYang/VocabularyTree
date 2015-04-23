@@ -2,7 +2,6 @@
 
 //==========================functions in class imageRetriver========================
 void imageRetriver::buildDataBase(char* directoryPath) {
-	vector<string> databaseImagePath;
 	DirectoryList(directoryPath, databaseImagePath, ".jpg");
 	double** trainFeatures = NULL;
 	printf("extract features...\n");
@@ -13,7 +12,7 @@ void imageRetriver::buildDataBase(char* directoryPath) {
 	printf("build tree finished...\n");
 	
 	printf("build database...\n");
-	vector<vector<double>> tfidfVector = getTFIDFVector(trainFeatures, nFeatures);
+	vector<vector<double>> tfidfVector = getTFIDFVector(trainFeatures, nImages);
 	addFeature2DataBase(tfidfVector);
 }
 
@@ -27,6 +26,11 @@ vector<string> imageRetriver::queryImage(const char* imagePath) {
 		queryFeat[i] = feat[i].descr;
 
 	vector<double> tfidfVector = getOneTFIDFVector(queryFeat, nFeatures, 0);
+
+	for(int i = 0; i < tfidfVector.size(); i++)
+		cout << tfidfVector[i] << " ";
+	cout << endl;
+	system("pause");
 
 	multimap<double, string> candidates;
 	map<vector<double>, string>::iterator iter; 
@@ -62,6 +66,7 @@ int imageRetriver::getTrainFeatures(double** &trainFeatures, vector<string> imag
 	int featCount = 0;
 	for(int i = 0; i < nImages; i++) {
 		cout << imagePaths[i] << endl;
+		databaseImagePath.push_back(imagePaths[i]);
 		IplImage* img = cvLoadImage(imagePaths[i].c_str());
 		struct feature* feat = NULL;
 		int n = sift_features(img, &feat);
@@ -77,8 +82,9 @@ int imageRetriver::getTrainFeatures(double** &trainFeatures, vector<string> imag
 }
 
 void imageRetriver::HKAdd(double* feature, int depth, vocabularyTreeNode* cur) {  //add tf value for each node
-	if(depth == tree->depth)
+	if(depth == tree->depth) {
 		return;
+	}
 	if(cur->add) {
 		cur->tf++;
 		cur->add = false;
@@ -100,7 +106,7 @@ void imageRetriver::HKAdd(double* feature, int depth, vocabularyTreeNode* cur) {
 void imageRetriver::HKDiv(vocabularyTreeNode* curNode, int curDepth) {
 	if(curDepth == tree->depth)
 		return;
-	curNode->idf = 1.0 * nImages / (max(curNode->tf, 1));
+	curNode->idf = log(1.0 * nImages / (max(curNode->tf, 1)));
 	for(int i = 0; i < curNode->nBranch; i++) {
 		HKDiv(curNode->children[i], curDepth + 1); 
 	}
@@ -132,6 +138,9 @@ vector<vector<double>> imageRetriver::getTFIDFVector(double** features, int nIma
 }
 
 vector<double> imageRetriver::getOneTFIDFVector(double** features, int featNums, int nStart) {
+#ifdef BUILDDATABASE
+	printf("nStart %d featnums %d\n", nStart, featNums);
+#endif
 	tree->clearTF(tree->root, 0);
 	for(int i = 0; i < featNums; i++) 
 		HKAdd(features[nStart + i], 0, tree->root);
@@ -141,7 +150,13 @@ vector<double> imageRetriver::getOneTFIDFVector(double** features, int featNums,
 }
 
 void imageRetriver::addFeature2DataBase(vector<vector<double>> tfidfVector) {
+#ifdef BUILDDATABASE
+	printf("add feature to database\n");
+#endif
 	for(int i = 0; i < nImages; i++) {
-		imageDatabase.insert(make_pair(tfidfVector[i], imagePath[i]));
+#ifdef BUILDDATABASE
+		printf("%s\n", databaseImagePath[i].c_str());
+#endif
+		imageDatabase.insert(make_pair(tfidfVector[i], databaseImagePath[i]));
 	}
 }

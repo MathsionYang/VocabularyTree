@@ -165,3 +165,8 @@ bool DirectoryList(LPCSTR Path, vector<string>& path, char* ext) {
 		}
 	}
 }
+
+void printAns(vector<string> ans) {
+	for(int i = 0; i < ans.size(); i++)
+		printf("%s\n", ans[i].c_str());
+}

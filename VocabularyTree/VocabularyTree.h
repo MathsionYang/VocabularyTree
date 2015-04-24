@@ -14,6 +14,7 @@
 #include <map>
 #include <vector>
 #include <math.h>
+#include <queue>
 
 using namespace std;
 
@@ -39,12 +40,13 @@ public:
 	vocabularyTreeNode** children;
 	int featureNums;
 
-	vocabularyTreeNode() {nBranch = DEFAULTBRANCH; featureLength = DEFAULTFEATURELENGH;}
+	vocabularyTreeNode() {nBranch = DEFAULTBRANCH; featureLength = DEFAULTFEATURELENGH; children = NULL;}
 	vocabularyTreeNode(int branchNum, int inputFeatureLength, double* features, int featureNumber) {
 		nBranch = branchNum;
 		featureLength = inputFeatureLength;
 		feature = features;
 		featureNums = featureNumber;
+		children = NULL;
 	}
 
 	double tf;

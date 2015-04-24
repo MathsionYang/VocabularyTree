@@ -27,11 +27,6 @@ vector<string> imageRetriver::queryImage(const char* imagePath) {
 
 	vector<double> tfidfVector = getOneTFIDFVector(queryFeat, nFeatures, 0);
 
-	for(int i = 0; i < tfidfVector.size(); i++)
-		cout << tfidfVector[i] << " ";
-	cout << endl;
-	system("pause");
-
 	multimap<double, string> candidates;
 	map<vector<double>, string>::iterator iter; 
 	double maxDistance = 1e20;

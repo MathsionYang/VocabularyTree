@@ -39,14 +39,16 @@ public:
 	double weight;
 	vocabularyTreeNode** children;
 	int featureNums;
+	int depth;
 
-	vocabularyTreeNode() {nBranch = DEFAULTBRANCH; featureLength = DEFAULTFEATURELENGH; children = NULL;}
-	vocabularyTreeNode(int branchNum, int inputFeatureLength, double* features, int featureNumber) {
+	vocabularyTreeNode() {nBranch = DEFAULTBRANCH; featureLength = DEFAULTFEATURELENGH; children = NULL; depth = 0;}
+	vocabularyTreeNode(int branchNum, int inputFeatureLength, double* features, int featureNumber, int curDepth = 0) {
 		nBranch = branchNum;
 		featureLength = inputFeatureLength;
 		feature = features;
 		featureNums = featureNumber;
 		children = NULL;
+		depth = curDepth;
 	}
 
 	double tf;
@@ -97,7 +99,7 @@ public:
 	vector<double> getOneTFIDFVector(double** features, int featNums, int nStart); 
 	void addFeature2DataBase(vector<vector<double>> tfidfVector);
 
-	void HKAdd(double* feature, int depth, vocabularyTreeNode* node);
+	void HKAdd(double* feature, int depth, vocabularyTreeNode* node, bool checkAdd);
 	void HKDiv(vocabularyTreeNode* curNode, int curDepth);
 };
 

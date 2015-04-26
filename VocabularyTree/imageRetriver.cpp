@@ -76,11 +76,11 @@ int imageRetriver::getTrainFeatures(double** &trainFeatures, vector<string> imag
 	return featCount;
 }
 
-void imageRetriver::HKAdd(double* feature, int depth, vocabularyTreeNode* cur) {  //add tf value for each node
+void imageRetriver::HKAdd(double* feature, int depth, vocabularyTreeNode* cur, bool checkAdd) {  //add tf value for each node
 	if(depth == tree->depth) {
 		return;
 	}
-	if(cur->add) {
+	if(cur->add | !checkAdd) {
 		cur->tf++;
 		cur->add = false;
 	}
@@ -95,7 +95,7 @@ void imageRetriver::HKAdd(double* feature, int depth, vocabularyTreeNode* cur) {
 			minIndex = i;
 		}
 	}
-	HKAdd(feature, depth + 1, cur->children[minIndex]);
+	HKAdd(feature, depth + 1, cur->children[minIndex], checkAdd);
 }
 
 void imageRetriver::HKDiv(vocabularyTreeNode* curNode, int curDepth) {
@@ -112,7 +112,7 @@ void imageRetriver::calIDF(double** features) {
 	for(int i = 0; i < nImages; i++) {
 		tree->clearADD(tree->root, 0);
 		for(int j = 0; j < nFeatures[i]; j++) {
-			HKAdd(features[featureCount], 0, tree->root);   //add the number of images at least one descriptor path through for each node
+			HKAdd(features[featureCount], 0, tree->root, true);   //add the number of images at least one descriptor path through for each node
 			featureCount++;
 		}
 	}
@@ -121,7 +121,7 @@ void imageRetriver::calIDF(double** features) {
 
 vector<vector<double>> imageRetriver::getTFIDFVector(double** features, int nImages) { 
 	calIDF(features);        //calculate idf for each node in the tree
-	tree->printTree(tree->root, 0);
+	//tree->printTree(tree->root, 0);
 	vector<vector<double>> tfidfVector;
 	int featureCount = 0;
 	for(int i = 0; i < nImages; i++) {
@@ -138,7 +138,7 @@ vector<double> imageRetriver::getOneTFIDFVector(double** features, int featNums,
 #endif
 	tree->clearTF(tree->root, 0);
 	for(int i = 0; i < featNums; i++) 
-		HKAdd(features[nStart + i], 0, tree->root);
+		HKAdd(features[nStart + i], 0, tree->root, false);
 	vector<double> oneImgTFIDF;
 	tree->getTFIDF(oneImgTFIDF, tree->root, 0);
 	return oneImgTFIDF;

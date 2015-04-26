@@ -12,6 +12,7 @@ void vocabularyTree::buildTree(double** features, int nFeatures, int nBranch, in
 		feature2Cluster[i].label = 0;
 		feature2Cluster[i].feature = features[i];
 	}
+	root->featureNums = nFeatures;
 	buildRecursion(0, root, feature2Cluster, nFeatures, nBranch, featureLength);
 }
 
@@ -31,7 +32,7 @@ void vocabularyTree::buildRecursion(int curDepth, vocabularyTreeNode* curNode, f
 	curNode->children = new vocabularyTreeNode*[branchNum];
 	int offset = 0;
 	for(int i = 0; i < nBranch; i++) {
-		curNode->children[i] = new vocabularyTreeNode(branchNum, featureLength, clusterCenter[i], nums[i]);
+		curNode->children[i] = new vocabularyTreeNode(branchNum, featureLength, clusterCenter[i], nums[i], curDepth);
 
 #ifdef BUILDTREE
 		printf("build new node, nums of features:%d depth %d\n", nums[i], curDepth);
@@ -76,7 +77,7 @@ void vocabularyTree::printTree(vocabularyTreeNode* curNode, int curDepth) {
 	while(!q.empty()) {
 		vocabularyTreeNode* cur = q.front();
 		q.pop();
-		printf("%lf ", cur->idf);
+		cout << cur->tf << " " << cur->idf << " " << cur->featureNums << endl;
 		system("pause");
 		if(cur->children != NULL) {
 			for(int i = 0; i < cur->nBranch; i++) 

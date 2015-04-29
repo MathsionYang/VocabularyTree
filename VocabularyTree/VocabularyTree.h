@@ -22,7 +22,7 @@ using namespace std;
 #define INTMIN -2147483648
 #define NRESULT 20
 #define ANSNUM 20     //the most similiar 20 images
-#define MAXFEATNUM 10000
+#define MAXFEATNUM 4000
 #define DEFAULTBRANCH 10
 #define DEFAULTDEPTH 6
 #define DEFAULTFEATURELENGH 128
@@ -93,10 +93,10 @@ public:
 	void buildDataBase( char* directoryPath );
 	vector<string> queryImage( const char* imagePath ); 
 
-	int getTrainFeatures(double** &features, vector<string> imagePaths);
+	int getTrainFeatures(double** &features, vector<string> imagePaths, feature* &feat, queue<feature*>& featRecord);
 	void calIDF(double** features);               //cal IDF for each node in the tree
 	vector<vector<double>> getTFIDFVector(double** features, int nImages);
-	vector<double> getOneTFIDFVector(double** features, int featNums, int nStart); 
+	vector<double> getOneTFIDFVector(double** features, int featNums, int nStart, int imageCount); 
 	void addFeature2DataBase(vector<vector<double>> tfidfVector);
 
 	void HKAdd(double* feature, int depth, vocabularyTreeNode* node, bool checkAdd);

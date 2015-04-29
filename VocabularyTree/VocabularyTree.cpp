@@ -16,6 +16,7 @@ void vocabularyTree::buildTree(double** features, int nFeatures, int nBranch, in
 	buildRecursion(0, root, feature2Cluster, nFeatures, nBranch, featureLength);
 }
 
+
 void vocabularyTree::buildRecursion(int curDepth, vocabularyTreeNode* curNode, featureClustering* features, int nFeatures, int branchNum, int featureLength) {
 	if(curDepth == depth)
 		return;

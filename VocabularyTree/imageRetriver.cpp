@@ -5,7 +5,9 @@ void imageRetriver::buildDataBase(char* directoryPath) {
 	DirectoryList(directoryPath, databaseImagePath, ".jpg");
 	double** trainFeatures = NULL;
 	printf("extract features...\n");
-	int nFeatures = getTrainFeatures(trainFeatures, databaseImagePath);
+	struct feature* feat = NULL;
+	queue<feature*> featRecord;
+	int nFeatures = getTrainFeatures(trainFeatures, databaseImagePath, feat, featRecord);
 
 	printf("build tree...\n");
 	tree->buildTree(trainFeatures, nFeatures, tree->nBranch, tree->depth, featureLength);
@@ -13,6 +15,13 @@ void imageRetriver::buildDataBase(char* directoryPath) {
 	
 	printf("build database...\n");
 	vector<vector<double>> tfidfVector = getTFIDFVector(trainFeatures, nImages);
+	system("pause");
+	for(int i = 0; i < featRecord.size(); i++) {
+		feature* topFeat = featRecord.front();
+		free(topFeat);
+		featRecord.pop();
+	}
+	system("pause");
 	addFeature2DataBase(tfidfVector);
 }
 
@@ -25,7 +34,7 @@ vector<string> imageRetriver::queryImage(const char* imagePath) {
 	for(int i = 0; i < nFeatures; i++)
 		queryFeat[i] = feat[i].descr;
 
-	vector<double> tfidfVector = getOneTFIDFVector(queryFeat, nFeatures, 0);
+	vector<double> tfidfVector = getOneTFIDFVector(queryFeat, nFeatures, 0, 0);
 
 	multimap<double, string> candidates;
 	map<vector<double>, string>::iterator iter; 
@@ -48,7 +57,7 @@ vector<string> imageRetriver::queryImage(const char* imagePath) {
 	return ans;
 }
 
-int imageRetriver::getTrainFeatures(double** &trainFeatures, vector<string> imagePaths) {
+int imageRetriver::getTrainFeatures(double** &trainFeatures, vector<string> imagePaths, feature* &feat, queue<feature*>& featRecord) {
 	nImages = imagePaths.size();
 
 #ifndef EXPERIMENT              //less images for faster speed in debug
@@ -60,19 +69,20 @@ int imageRetriver::getTrainFeatures(double** &trainFeatures, vector<string> imag
 	nFeatures = new int[nImages];
 	int featCount = 0;
 	for(int i = 0; i < nImages; i++) {
-		cout << imagePaths[i] << endl;
+		cout << imagePaths[i] << " ";
 		databaseImagePath.push_back(imagePaths[i]);
 		IplImage* img = cvLoadImage(imagePaths[i].c_str());
-		struct feature* feat = NULL;
 		int n = sift_features(img, &feat);
+		featRecord.push(feat);
 		for(int j = 0; j < n; j++) {
 			trainFeatures[featCount] = feat[j].descr;
 			featCount++;
 		}
+		cout << n << endl;
 		cvReleaseImage(&img);
 		nFeatures[i] = n;
 	}
-
+	cout << "total features: " << featCount << endl;
 	return featCount;
 }
 
@@ -125,16 +135,16 @@ vector<vector<double>> imageRetriver::getTFIDFVector(double** features, int nIma
 	vector<vector<double>> tfidfVector;
 	int featureCount = 0;
 	for(int i = 0; i < nImages; i++) {
-		vector<double> oneImgTFIDF = getOneTFIDFVector(features, nFeatures[i], featureCount);
+		vector<double> oneImgTFIDF = getOneTFIDFVector(features, nFeatures[i], featureCount, i);
 		tfidfVector.push_back(oneImgTFIDF);
 		featureCount += nFeatures[i];
 	}
 	return tfidfVector;
 }
 
-vector<double> imageRetriver::getOneTFIDFVector(double** features, int featNums, int nStart) {
+vector<double> imageRetriver::getOneTFIDFVector(double** features, int featNums, int nStart, int imageCount) {
 #ifdef BUILDDATABASE
-	printf("nStart %d featnums %d\n", nStart, featNums);
+	printf("image %d nStart %d featnums %d\n", imageCount, nStart, featNums);
 #endif
 	tree->clearTF(tree->root, 0);
 	for(int i = 0; i < featNums; i++) 

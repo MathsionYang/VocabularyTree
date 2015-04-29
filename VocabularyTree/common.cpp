@@ -48,7 +48,7 @@ void kmeans(featureClustering* &features, int nFeatures, int branchNum, int* &nu
 			memset(clusterCenter[i], 0, sizeof(double) * featureLength);
 		}
 		for(int i = 0; i < nFeatures; i++) {
-			clusterCenter[i] = features[i].feature;
+			memcpy(clusterCenter[i], features[i].feature, sizeof(double) * featureLength);
 			features[i].label = i;
 			nums[i] = 1;
 		}
@@ -58,12 +58,13 @@ void kmeans(featureClustering* &features, int nFeatures, int branchNum, int* &nu
 		return;
 	}
 
-	int* idx = new int[nFeatures];
 	int* cnt = new int[branchNum];
 
 	clusterCenter = new double*[branchNum];
+	for(int i = 0; i < branchNum; i++)
+		clusterCenter[i] = new double[featureLength];
 	for(int i = 0; i < branchNum; i++) {
-		clusterCenter[i] = features[i].feature;
+		memcpy(clusterCenter[i], features[i].feature, sizeof(double) * featureLength);
 	}
 	
 	double** tempCenters;
@@ -92,7 +93,6 @@ void kmeans(featureClustering* &features, int nFeatures, int branchNum, int* &nu
 			cnt[minIndex]++;
 			features[i].label = minIndex;
 			node_add(tempCenters[minIndex], features[i].feature, featureLength);
-			idx[i] = minIndex;
 		}
 
 #ifdef BUILDTREE
@@ -123,7 +123,6 @@ void kmeans(featureClustering* &features, int nFeatures, int branchNum, int* &nu
 		}
 	}
 
-	delete[] idx;
 	delete[] cnt;
 	
 	return;

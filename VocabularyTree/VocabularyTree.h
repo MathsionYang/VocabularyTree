@@ -29,7 +29,7 @@ using namespace std;
 
 //#define BUILDTREE
 #define BUILDDATABASE
-//#define EXPERIMENT
+#define EXPERIMENT
 
 class vocabularyTreeNode {
 public:
@@ -105,6 +105,7 @@ public:
 
 extern double sqr_distance(double* vector1, double* vector2, int featureLength);
 extern double vector_sqr_distance(vector<double> vector1, vector<double> vector2);
+extern void vector_normalize(vector<double>& vector1);
 extern void node_add(double* &vector1, double* &vector2, int featureLength);
 extern void node_divide_cnt(double* &vector1, int cnt, int featureLength);
 extern void kmeans(featureClustering* &features, int nFeatures, int branchNum, int* &nums, int featureLength, double** &clusterCenter);

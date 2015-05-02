@@ -15,13 +15,11 @@ void imageRetriver::buildDataBase(char* directoryPath) {
 	
 	printf("build database...\n");
 	vector<vector<double>> tfidfVector = getTFIDFVector(trainFeatures, nImages);
-	system("pause");
 	for(int i = 0; i < featRecord.size(); i++) {
 		feature* topFeat = featRecord.front();
 		free(topFeat);
 		featRecord.pop();
 	}
-	system("pause");
 	addFeature2DataBase(tfidfVector);
 }
 
@@ -49,6 +47,7 @@ vector<string> imageRetriver::queryImage(const char* imagePath) {
 	multimap<double, string>::iterator iter1;
 	for(iter1 = candidates.begin(); iter1 != candidates.end(); iter1++) {
 		ans.push_back(iter1->second);
+		cout << iter1->second << "  " << iter1->first << endl;
 		count++;
 		if(count == ANSNUM)
 			break;
@@ -111,7 +110,7 @@ void imageRetriver::HKAdd(double* feature, int depth, vocabularyTreeNode* cur, b
 void imageRetriver::HKDiv(vocabularyTreeNode* curNode, int curDepth) {
 	if(curDepth == tree->depth)
 		return;
-	curNode->idf = log(1.0 * nImages / (max(curNode->tf, 1)));
+	curNode->idf = log(1.0 * nImages / (max((int)curNode->tf, 1)));
 	for(int i = 0; i < curNode->nBranch; i++) {
 		HKDiv(curNode->children[i], curDepth + 1); 
 	}
@@ -151,6 +150,7 @@ vector<double> imageRetriver::getOneTFIDFVector(double** features, int featNums,
 		HKAdd(features[nStart + i], 0, tree->root, false);
 	vector<double> oneImgTFIDF;
 	tree->getTFIDF(oneImgTFIDF, tree->root, 0);
+	vector_normalize(oneImgTFIDF);
 	return oneImgTFIDF;
 }
 

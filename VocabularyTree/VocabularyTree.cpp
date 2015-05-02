@@ -30,9 +30,12 @@ void vocabularyTree::buildRecursion(int curDepth, vocabularyTreeNode* curNode, f
 	double** clusterCenter = NULL;
 	kmeans(features, nFeatures, branchNum, nums, featureLength, clusterCenter);
 	qsort(features, nFeatures, sizeof(featureClustering), cmp);
+	int ccount =0 ;
 	curNode->children = new vocabularyTreeNode*[branchNum];
 	int offset = 0;
 	for(int i = 0; i < nBranch; i++) {
+		//if(nums[i] == 0)
+		//	continue;
 		curNode->children[i] = new vocabularyTreeNode(branchNum, featureLength, clusterCenter[i], nums[i], curDepth);
 
 #ifdef BUILDTREE
@@ -48,7 +51,7 @@ void vocabularyTree::buildRecursion(int curDepth, vocabularyTreeNode* curNode, f
 void vocabularyTree::clearTF(vocabularyTreeNode* curNode, int curDepth) {
 	if(curDepth == depth)
 		return;
-	curNode->tf = 0;
+	curNode->tf = 0.0;
 	for(int i = 0; i < curNode->nBranch; i++) {
 		clearTF(curNode->children[i], curDepth + 1);
 	}
@@ -59,6 +62,10 @@ void vocabularyTree::getTFIDF(vector<double>& tfidf, vocabularyTreeNode* curNode
 		return;
 
 	tfidf.push_back(curNode->tf * curNode->idf);
+	if(curNode->tf < 0)
+		cout << "tf " << curNode->tf << endl;
+	if(curNode->idf < 0)
+		cout << "idf " << curNode->idf << endl;
 	for(int i = 0; i < curNode->nBranch; i++) {
 		getTFIDF(tfidf, curNode->children[i], curDepth + 1);
 	}

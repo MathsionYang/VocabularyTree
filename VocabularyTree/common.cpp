@@ -21,6 +21,17 @@ double vector_sqr_distance(vector<double> vector1, vector<double> vector2) {
 	return sum;
 }
 
+void vector_normalize(vector<double> &vector1) {
+	double sum = 0;
+	int length = vector1.size();
+	for(int i = 0; i < length; i++) {
+		sum += vector1[i];
+	}
+	sum = max(sum, 1e-3);
+	for(int i = 0; i < length; i++)
+		vector1[i] = vector1[i] / sum;
+}
+	 
 void node_add(double* &vector1, double* &vector2, int featureLength) {
 	for(int i = 0; i < featureLength; i++) {
 		vector1[i] += vector2[i];
@@ -35,6 +46,7 @@ void node_divide_cnt(double* &vector1, int cnt, int featureLength) {
 		vector1[i] /= cnt;
 	}
 }
+
 
 void kmeans(featureClustering* &features, int nFeatures, int branchNum, int* &nums, int featureLength, double** &clusterCenter) {
 	nums = new int[branchNum];

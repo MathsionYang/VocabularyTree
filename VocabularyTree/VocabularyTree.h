@@ -15,6 +15,8 @@
 #include <vector>
 #include <math.h>
 #include <queue>
+#include <algorithm>
+#include <functional>
 
 using namespace std;
 
@@ -30,6 +32,24 @@ using namespace std;
 //#define BUILDTREE
 #define BUILDDATABASE
 #define EXPERIMENT
+
+typedef struct index {
+	int imageID;
+	double tfidf;
+	index(int imageIDInput, double tfidfInput) {
+		imageID = imageIDInput; 
+		tfidf = tfidfInput;
+	}
+}index;
+
+typedef struct matchInfo {
+	double dis;
+	string imagePath;
+	matchInfo(double inputDis, string inputImagePath) {
+		dis = inputDis;
+		imagePath = inputImagePath;
+	} 
+}matchInfo;
 
 class vocabularyTreeNode {
 public:
@@ -54,6 +74,8 @@ public:
 	double tf;
 	double idf;
 	bool add;                     //the tf varible can be added per image once
+
+	vector<index> invertedIndex;
 };
 
 class featureClustering {
@@ -74,9 +96,11 @@ public:
 	void buildTree(double** features, int nFeatures, int nBranch, int depth, int featureLength);
 	void buildRecursion(int curDepth, vocabularyTreeNode* curNode, featureClustering* features, int nFeatures, int branchNum, int featureLength);
 	void clearTF(vocabularyTreeNode* root, int curDepth);
-	void getTFIDF(vector<double>& tfidf, vocabularyTreeNode* curNode, int curDepth);
+	void getTFIDF(vocabularyTreeNode* curNode, int curDepth, double sum, int imageID);
 	void clearADD(vocabularyTreeNode* root, int curDepth);
 	void printTree(vocabularyTreeNode* root, int curDepth);
+	double HKgetSum(vocabularyTreeNode* root, int curDepth);
+	void HKCalDis(vocabularyTreeNode* curNode, int curDepth, vector<matchInfo>& imageDis);
 };
 
 class imageRetriver {
@@ -95,9 +119,10 @@ public:
 
 	int getTrainFeatures(double** &features, vector<string> imagePaths, feature* &feat, queue<feature*>& featRecord);
 	void calIDF(double** features);               //cal IDF for each node in the tree
-	vector<vector<double>> getTFIDFVector(double** features, int nImages);
-	vector<double> getOneTFIDFVector(double** features, int featNums, int nStart, int imageCount); 
+	void getTFIDFVector(double** features, int nImages);
+	void getOneTFIDFVector(double** features, int featNums, int nStart, int imageCount); 
 	void addFeature2DataBase(vector<vector<double>> tfidfVector);
+	vector<string> calImageDis(double** queryFeat, vector<matchInfo> &imageDis, int nFeatures);
 
 	void HKAdd(double* feature, int depth, vocabularyTreeNode* node, bool checkAdd);
 	void HKDiv(vocabularyTreeNode* curNode, int curDepth);

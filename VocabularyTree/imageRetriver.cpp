@@ -14,17 +14,15 @@ void imageRetriver::buildDataBase(char* directoryPath) {
 	printf("build tree finished...\n");
 	
 	printf("build database...\n");
-	vector<vector<double>> tfidfVector = getTFIDFVector(trainFeatures, nImages);
+	getTFIDFVector(trainFeatures, nImages);
 	for(int i = 0; i < featRecord.size(); i++) {
 		feature* topFeat = featRecord.front();
 		free(topFeat);
 		featRecord.pop();
 	}
-	addFeature2DataBase(tfidfVector);
 }
 
 vector<string> imageRetriver::queryImage(const char* imagePath) {
-	vector<string> ans;
 	IplImage* img = cvLoadImage(imagePath);
 	struct feature* feat = NULL;
 	int nFeatures = sift_features(img, &feat);
@@ -32,27 +30,11 @@ vector<string> imageRetriver::queryImage(const char* imagePath) {
 	for(int i = 0; i < nFeatures; i++)
 		queryFeat[i] = feat[i].descr;
 
-	vector<double> tfidfVector = getOneTFIDFVector(queryFeat, nFeatures, 0, 0);
-
-	multimap<double, string> candidates;
-	map<vector<double>, string>::iterator iter; 
-	double maxDistance = 1e20;
-	for(iter = imageDatabase.begin(); iter != imageDatabase.end(); iter++) {
-		vector<double> cur = iter->first;
-		double distance = vector_sqr_distance(cur, tfidfVector);
-		candidates.insert(make_pair(distance, iter->second));
+	vector<matchInfo> imageDis;
+	for(int i = 0; i < nImages; i++) {
+		imageDis.push_back(matchInfo(2, databaseImagePath[i]));
 	}
-
-	int count = 0;
-	multimap<double, string>::iterator iter1;
-	for(iter1 = candidates.begin(); iter1 != candidates.end(); iter1++) {
-		ans.push_back(iter1->second);
-		cout << iter1->second << "  " << iter1->first << endl;
-		count++;
-		if(count == ANSNUM)
-			break;
-	}
-
+	vector<string> ans = calImageDis(queryFeat, imageDis, nFeatures);
 	return ans;
 }
 
@@ -128,30 +110,26 @@ void imageRetriver::calIDF(double** features) {
 	HKDiv(tree->root, 0);    //cal N / Ni, where N is the number of total images and Ni is tf
 }
 
-vector<vector<double>> imageRetriver::getTFIDFVector(double** features, int nImages) { 
+void imageRetriver::getTFIDFVector(double** features, int nImages) { 
 	calIDF(features);        //calculate idf for each node in the tree
 	//tree->printTree(tree->root, 0);
 	vector<vector<double>> tfidfVector;
 	int featureCount = 0;
 	for(int i = 0; i < nImages; i++) {
-		vector<double> oneImgTFIDF = getOneTFIDFVector(features, nFeatures[i], featureCount, i);
-		tfidfVector.push_back(oneImgTFIDF);
+		getOneTFIDFVector(features, nFeatures[i], featureCount, i);
 		featureCount += nFeatures[i];
 	}
-	return tfidfVector;
 }
 
-vector<double> imageRetriver::getOneTFIDFVector(double** features, int featNums, int nStart, int imageCount) {
+void imageRetriver::getOneTFIDFVector(double** features, int featNums, int nStart, int imageID) {
 #ifdef BUILDDATABASE
-	printf("image %d nStart %d featnums %d\n", imageCount, nStart, featNums);
+	printf("image %d nStart %d featnums %d\n", imageID, nStart, featNums);
 #endif
 	tree->clearTF(tree->root, 0);
 	for(int i = 0; i < featNums; i++) 
 		HKAdd(features[nStart + i], 0, tree->root, false);
-	vector<double> oneImgTFIDF;
-	tree->getTFIDF(oneImgTFIDF, tree->root, 0);
-	vector_normalize(oneImgTFIDF);
-	return oneImgTFIDF;
+	double sum = tree->HKgetSum(tree->root, 0);
+	tree->getTFIDF(tree->root, 0, sum, imageID);
 }
 
 void imageRetriver::addFeature2DataBase(vector<vector<double>> tfidfVector) {
@@ -164,4 +142,22 @@ void imageRetriver::addFeature2DataBase(vector<vector<double>> tfidfVector) {
 #endif
 		imageDatabase.insert(make_pair(tfidfVector[i], databaseImagePath[i]));
 	}
+}
+
+bool matchInfoCmp(matchInfo& a, matchInfo& b) {
+	return a.dis - b.dis;
+}
+
+vector<string> imageRetriver::calImageDis(double** queryFeat, vector<matchInfo> &imageDis, int nFeatures) {
+	tree->clearTF(tree->root, 0);
+	for(int i = 0; i < nFeatures; i++) {
+		HKAdd(queryFeat[i], 0, tree->root, false);
+	}
+	tree->HKCalDis(tree->root, 0, imageDis);
+	sort(imageDis.begin(), imageDis.end(), matchInfoCmp);
+	vector<string> ans;
+	for(int i = 0; i < ANSNUM; i++)
+		ans.push_back(imageDis[i].imagePath);
+
+	return ans;
 }

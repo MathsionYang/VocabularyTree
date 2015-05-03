@@ -37,12 +37,10 @@ void vocabularyTree::buildRecursion(int curDepth, vocabularyTreeNode* curNode, f
 		//if(nums[i] == 0)
 		//	continue;
 		curNode->children[i] = new vocabularyTreeNode(branchNum, featureLength, clusterCenter[i], nums[i], curDepth);
-
 #ifdef BUILDTREE
 		printf("build new node, nums of features:%d depth %d\n", nums[i], curDepth);
 		//system("pause");
 #endif
-
 		buildRecursion(curDepth + 1, curNode->children[i], features + offset, nums[i], branchNum, featureLength);
 		offset += nums[i];
 	}
@@ -57,17 +55,17 @@ void vocabularyTree::clearTF(vocabularyTreeNode* curNode, int curDepth) {
 	}
 }
 
-void vocabularyTree::getTFIDF(vector<double>& tfidf, vocabularyTreeNode* curNode, int curDepth) {
+void vocabularyTree::getTFIDF(vocabularyTreeNode* curNode, int curDepth, double sum, int imageID) {
 	if(curDepth == depth)
 		return;
-
-	tfidf.push_back(curNode->tf * curNode->idf);
-	if(curNode->tf < 0)
-		cout << "tf " << curNode->tf << endl;
-	if(curNode->idf < 0)
-		cout << "idf " << curNode->idf << endl;
+	
+	double tfidfValue = curNode->tf * curNode->idf;
+	if(tfidfValue != 0) {
+		tfidfValue /= sum;
+		curNode->invertedIndex.push_back(index(imageID, tfidfValue));
+	}
 	for(int i = 0; i < curNode->nBranch; i++) {
-		getTFIDF(tfidf, curNode->children[i], curDepth + 1);
+		getTFIDF(curNode->children[i], curDepth + 1, sum, imageID);
 	}
 }
 
@@ -92,4 +90,29 @@ void vocabularyTree::printTree(vocabularyTreeNode* curNode, int curDepth) {
 				q.push(cur->children[i]);
 		}
 	}
+}
+
+double vocabularyTree::HKgetSum(vocabularyTreeNode* curNode, int curDepth) {
+	if(curDepth == depth) {
+		return 0;
+	} else {
+		double sum = curNode->tf * curNode->idf;
+		for(int i = 0; i < curNode->nBranch; i++) {
+			sum += HKgetSum(curNode->children[i], curDepth + 1);
+		}
+		return sum;
+	} 
+}
+
+void vocabularyTree::HKCalDis(vocabularyTreeNode* curNode, int curDepth, vector<matchInfo>& imageDis) {
+	if(curDepth == depth)
+		return;
+	double tfidfValue = curNode->tf * curNode->idf;
+	if(tfidfValue != 0) {
+		for(int i = 0; i < curNode->invertedIndex.size(); i++) {
+			imageDis[(curNode->invertedIndex)[i].imageID].dis -= tfidfValue * (curNode->invertedIndex)[i].tfidf;
+		}
+	}
+	for(int i = 0; i < curNode->nBranch; i++)
+		HKCalDis(curNode->children[i], curDepth + 1, imageDis);
 }

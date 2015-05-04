@@ -34,8 +34,6 @@ void vocabularyTree::buildRecursion(int curDepth, vocabularyTreeNode* curNode, f
 	curNode->children = new vocabularyTreeNode*[branchNum];
 	int offset = 0;
 	for(int i = 0; i < nBranch; i++) {
-		//if(nums[i] == 0)
-		//	continue;
 		curNode->children[i] = new vocabularyTreeNode(branchNum, featureLength, clusterCenter[i], nums[i], curDepth);
 #ifdef BUILDTREE
 		printf("build new node, nums of features:%d depth %d\n", nums[i], curDepth);
@@ -104,15 +102,16 @@ double vocabularyTree::HKgetSum(vocabularyTreeNode* curNode, int curDepth) {
 	} 
 }
 
-void vocabularyTree::HKCalDis(vocabularyTreeNode* curNode, int curDepth, vector<matchInfo>& imageDis) {
+void vocabularyTree::HKCalDis(vocabularyTreeNode* curNode, int curDepth, vector<matchInfo>& imageDis, double sum) {
 	if(curDepth == depth)
 		return;
 	double tfidfValue = curNode->tf * curNode->idf;
+	tfidfValue /= max(sum, 1e-3);
 	if(tfidfValue != 0) {
 		for(int i = 0; i < curNode->invertedIndex.size(); i++) {
-			imageDis[(curNode->invertedIndex)[i].imageID].dis -= tfidfValue * (curNode->invertedIndex)[i].tfidf;
+			imageDis[(curNode->invertedIndex)[i].imageID].dis -= 2 * tfidfValue;
 		}
 	}
 	for(int i = 0; i < curNode->nBranch; i++)
-		HKCalDis(curNode->children[i], curDepth + 1, imageDis);
+		HKCalDis(curNode->children[i], curDepth + 1, imageDis, sum);
 }

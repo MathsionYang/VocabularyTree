@@ -100,7 +100,7 @@ public:
 	void clearADD(vocabularyTreeNode* root, int curDepth);
 	void printTree(vocabularyTreeNode* root, int curDepth);
 	double HKgetSum(vocabularyTreeNode* root, int curDepth);
-	void HKCalDis(vocabularyTreeNode* curNode, int curDepth, vector<matchInfo>& imageDis);
+	void HKCalDis(vocabularyTreeNode* curNode, int curDepth, vector<matchInfo>& imageDis, double sum);
 };
 
 class imageRetriver {

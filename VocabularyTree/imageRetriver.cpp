@@ -145,7 +145,7 @@ void imageRetriver::addFeature2DataBase(vector<vector<double>> tfidfVector) {
 }
 
 bool matchInfoCmp(matchInfo& a, matchInfo& b) {
-	return a.dis - b.dis;
+	return a.dis < b.dis;
 }
 
 vector<string> imageRetriver::calImageDis(double** queryFeat, vector<matchInfo> &imageDis, int nFeatures) {
@@ -153,11 +153,14 @@ vector<string> imageRetriver::calImageDis(double** queryFeat, vector<matchInfo> 
 	for(int i = 0; i < nFeatures; i++) {
 		HKAdd(queryFeat[i], 0, tree->root, false);
 	}
-	tree->HKCalDis(tree->root, 0, imageDis);
+	double sum = tree->HKgetSum(tree->root, 0);
+	tree->HKCalDis(tree->root, 0, imageDis, sum);
 	sort(imageDis.begin(), imageDis.end(), matchInfoCmp);
 	vector<string> ans;
-	for(int i = 0; i < ANSNUM; i++)
+	for(int i = 0; i < ANSNUM; i++) {
 		ans.push_back(imageDis[i].imagePath);
+		cout << imageDis[i].dis << " ";
+	}
 
 	return ans;
 }

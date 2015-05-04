@@ -2,7 +2,7 @@
 
 int main() {
 	imageRetriver retriver;
-	retriver.buildDataBase("F:\\data\\image.orig");
+	retriver.buildDataBase("D:\\data\\image.orig");
 	string queryPath;
 	cout << "type in the query image path:" << endl;
 	cin >> queryPath;

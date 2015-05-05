@@ -181,3 +181,27 @@ void printAns(vector<string> ans) {
 	for(int i = 0; i < ans.size(); i++)
 		printf("%s\n", ans[i].c_str());
 }
+
+void saveImageFeature(int imageID, double** feature, int nFeatures) {
+	char name[100];
+	sprintf(name, "features/%d/dat", imageID);
+	FILE* fp = fopen(name, "w");
+	fprintf(fp, "%d\n", nFeatures);
+	for(int i = 0; i < nFeatures; i++) {
+		for(int j = 0; j < DEFAULTFEATURELENGH; j++)
+			fprintf(fp, "%lf ", feature[i][j]);
+		fprintf(fp, "\n");
+	}
+}
+
+void readImageFeature(int imageID, double** &feature, int& nFeatures) {
+	char name[100];
+	sprintf(name, "features/%d/dat", imageID);
+	FILE* fp = fopen(name, "r");
+	fscanf(fp, "%d", nFeatures);
+	for(int i = 0; i < nFeatures; i++) {
+		for(int j = 0; j < DEFAULTFEATURELENGH; j++) {
+			fscanf(fp, "%lf", &feature[i][j]);
+		}
+	}	
+}

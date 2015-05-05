@@ -1,19 +1,26 @@
 ﻿#include "VocabularyTree.h"
 
 //==========================functions in class vocabularyTree========================
-void vocabularyTree::buildTree(double** features, int nFeatures, int nBranch, int depth, int featureLength) {
-#ifdef BUILDTREE
-	printf("nFeatures %d\n", nFeatures);
-#endif
+void vocabularyTree::buildTree(vector<featureClustering*> originCenter, featureFile* fileRecord, int nBranch, int depth, int featureLength) {
+	for(int i = 0; i < originCenter.size(); i++) {
+		root->children[i] = new vocabularyTreeNode(nBranch, featureLength, originCenter[i]->feature, 0, 1);  //nFeatures先写0，读进来以后再补	
+		double** features = NULL;
+		int featNum = 0;
+		fileRecord[i].readFeatures(features, featureLength, featNum);
+		root->children[i]->featureNums = featNum;
+		featureClustering* featureCluster = new featureClustering[featNum];
+		for(int j = 0; j < featNum; j++) {
+			featureCluster[j].feature = features[j];
+			featureCluster[j].label = i;
+		}
+		buildRecursion(1, root->children[i], featureCluster, featNum, nBranch, featureLength);
 
-	featureClustering* feature2Cluster;
-	feature2Cluster = new featureClustering[nFeatures];
-	for(int i = 0; i < nFeatures; i++) {
-		feature2Cluster[i].label = 0;
-		feature2Cluster[i].feature = features[i];
+		for(int j = 0; j < featNum; j++) {
+			delete features[j];
+		}
+		delete[] featureCluster;
+		delete[] features;
 	}
-	root->featureNums = nFeatures;
-	buildRecursion(0, root, feature2Cluster, nFeatures, nBranch, featureLength);
 }
 
 

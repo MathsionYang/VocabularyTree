@@ -17,6 +17,7 @@
 #include <queue>
 #include <algorithm>
 #include <functional>
+#include <fstream>
 
 using namespace std;
 
@@ -32,6 +33,8 @@ using namespace std;
 //#define BUILDTREE
 #define BUILDDATABASE
 #define EXPERIMENT
+#define EXTRACTFEAT
+//#define READFILE
 
 typedef struct index {
 	int imageID;
@@ -50,6 +53,110 @@ typedef struct matchInfo {
 		imagePath = inputImagePath;
 	} 
 }matchInfo;
+
+class metaData {
+public:
+	string metaDataPath;
+	
+	metaData() { metaDataPath = "metaData.dat"; }
+	vector<featureClustering*> readFeature() {
+		vector<featureClustering*> ans;
+		double* feature = new double[DEFAULTFEATURELENGH];
+		fstream file;
+		file.open(metaDataPath.c_str(), ios::in);
+		for(int i = 0; i < DEFAULTBRANCH; i++) {
+			memset(feature, 0, sizeof(double) * DEFAULTFEATURELENGH);
+			for(int j = 0; j < DEFAULTFEATURELENGH; j++)
+				file >> feature[j];
+			featureClustering* temp = new featureClustering(feature, i);
+			ans.push_back(temp);
+		}
+		return ans;
+	}
+
+	void writeFeature(vector<featureClustering*> feat) {
+		fstream file;
+		file.open(metaDataPath.c_str(), ios::out);
+		for(int i = 0 ; i < feat.size(); i++) {
+			for(int j = 0; j < DEFAULTFEATURELENGH; j++)
+				file << feat[i]->feature[j] << " ";
+			file << endl;
+		}
+	}
+
+	vector<string> readFilePath {
+		vector<string> ans;
+		string temp;
+		fstream file;
+		file.open(metaData.c_str(), ios::in);
+		int count = 0;
+		while(getline(file, temp)) {
+			count++;
+			if(count == 10)
+				break;
+		}
+		for(int i = 0; i < DEFAULTBRANCH; i++) {
+			string temp;
+			file >> temp;
+			ans.push_back(temp);
+		}
+		return ans;
+	}
+
+	void writeFilePath(vector<string> path) {
+		fstream file;
+		file.open(metaData.c_str(), ios::in | ios::app);
+		for(int i = 0; i < path.size(); i++) {
+			file << path[i] << endl;	
+		}
+	}
+};
+
+class featureFile {
+public:
+	int clusterIndex;
+	int featureNum;
+	string filePath;
+	featureFile() {clusterIndex = 0; featureNum = 0;}
+	featureFile(int inputIndex, int inputFeatureNum) { clusterIndex = inputIndex; featureNum = inputFeatureNum; }
+	void writeClusterCenter(int clusterIndex) {
+		char fileName[200];
+		sprintf(fileName, "%d.dat", clusterIndex);
+		filePath = fileName;
+		fstream file;
+		file.open(filePath.c_str(), ios::out);
+		file << clusterIndex << endl;
+		file.close();
+	}
+
+	void writeOneFeat(double* feature, int featureLength, int clusterIndex) {
+		FILE* file = fopen(filePath.c_str(), "a+");
+		for(int i = 0; i < featureLength; i++)
+			fprintf(file, "%lf ", feature[i]);
+		fprintf(file, "\n");
+		fclose(file);
+	}
+
+	void readFeatures(double**& feature, int featureLength, int& featureNum) {
+		FILE* file = fopen(filePath.c_str(), "r");	
+		char lines[100000];
+		while(fgets(lines, 100000, file))
+			featureNum++;
+		fclose(file);
+
+		file = fopen(filePath.c_str(), "r");
+		int clusterIndex = 0;
+		fscanf(file, "%d", &clusterIndex);
+		feature = new double*[featureNum];
+		for(int i = 0; i < featureNum; i++)
+			feature[i] = new double[featureLength];
+		for(int i = 0; i < featureNum; i++) {
+			for(int j = 0; j < featureLength; j++) {
+				fscanf(file, "%lf", feature[i][j]);
+			}
+		}
+	}
+};
 
 class vocabularyTreeNode {
 public:
@@ -83,6 +190,7 @@ public:
 	double* feature;
 	int label;
 	featureClustering() { feature = NULL; label = 0; }
+	featureClustering(double* inputFeature, int inputLabel) {feature = inputFeature; label = inputLabel;}
 };
 
 class vocabularyTree {
@@ -93,7 +201,7 @@ public:
 	int depth;
 
 	vocabularyTree() { root = new vocabularyTreeNode(); nBranch = DEFAULTBRANCH; depth = DEFAULTDEPTH; }
-	void buildTree(double** features, int nFeatures, int nBranch, int depth, int featureLength);
+	void buildTree(vector<featureClustering*> originCenter, featureFile* fileRecord, int nBranch, int depth, int featureLength);
 	void buildRecursion(int curDepth, vocabularyTreeNode* curNode, featureClustering* features, int nFeatures, int branchNum, int featureLength);
 	void clearTF(vocabularyTreeNode* root, int curDepth);
 	void getTFIDF(vocabularyTreeNode* curNode, int curDepth, double sum, int imageID);
@@ -110,18 +218,18 @@ public:
 	vector<string> databaseImagePath; 
 	int featureLength;  
 	int nImages;
-	int *nFeatures;                        //features per image
 	int totalFeatures;
+	featureFile* featFile;
 
 	imageRetriver() { tree = new vocabularyTree(); nImages = 0; featureLength = DEFAULTFEATURELENGH; nFeatures = NULL;}
 	void buildDataBase( char* directoryPath );
 	vector<string> queryImage( const char* imagePath ); 
 
-	int getTrainFeatures(double** &features, vector<string> imagePaths, feature* &feat, queue<feature*>& featRecord);
-	void calIDF(double** features);               //cal IDF for each node in the tree
-	void getTFIDFVector(double** features, int nImages);
+	void getOriginCenter(vector<featureClustering*>& originCenter, queue<feature*>& featRecord);
+	int getTrainFeatures(vector<featureClustering*> originCenter, queue<feature*>& featRecord, vector<string>& featData);
+	void calIDF(double** features, int nFeatures);               //cal IDF for each node in the tree
+	void getTFIDFVector(featureFile* featFile, int nImages);
 	void getOneTFIDFVector(double** features, int featNums, int nStart, int imageCount); 
-	void addFeature2DataBase(vector<vector<double>> tfidfVector);
 	vector<string> calImageDis(double** queryFeat, vector<matchInfo> &imageDis, int nFeatures);
 
 	void HKAdd(double* feature, int depth, vocabularyTreeNode* node, bool checkAdd);
@@ -137,5 +245,7 @@ extern void kmeans(featureClustering* &features, int nFeatures, int branchNum, i
 extern int cmp(const void* a, const void* b);
 extern bool DirectoryList(LPCSTR Path, vector<string>& path, char* ext);
 extern void printAns(vector<string> ans);
+extern void saveImageFeature(int imageID, double** feature, int nFeatures);
+extern void readImageFeature(int imageID, double** &feature, int& nFeatures)
 
 #endif

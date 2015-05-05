@@ -3,23 +3,94 @@
 //==========================functions in class imageRetriver========================
 void imageRetriver::buildDataBase(char* directoryPath) {
 	DirectoryList(directoryPath, databaseImagePath, ".jpg");
-	double** trainFeatures = NULL;
+	metaData MetaData;
+	vector<featureClustering*> originCenter;
+#ifdef EXTRACTFEAT
 	printf("extract features...\n");
-	struct feature* feat = NULL;
 	queue<feature*> featRecord;
-	int nFeatures = getTrainFeatures(trainFeatures, databaseImagePath, feat, featRecord);
-
-	printf("build tree...\n");
-	tree->buildTree(trainFeatures, nFeatures, tree->nBranch, tree->depth, featureLength);
-	printf("build tree finished...\n");
-	
-	printf("build database...\n");
-	getTFIDFVector(trainFeatures, nImages);
+	vector<string> featDataStr;
+	getOriginCenter(originCenter, featRecord);      //得到初始聚类中心
+	MetaData.writeFeature(originCenter);
+	getTrainFeatures(originCenter, featRecord, featDataStr);  //将所有特征初分类,featData返回特征文件的路径
 	for(int i = 0; i < featRecord.size(); i++) {
 		feature* topFeat = featRecord.front();
 		free(topFeat);
 		featRecord.pop();
 	}
+#endif
+#ifdef READFILE
+	nImages = databaseImagePath.size();
+	originCenter = MetaData.readFeature();
+	featFile = new featureFile[DEFAULTBRANCH];
+	vector<string> clusterPath = MetaData.readFilePath();
+	for(int i = 0; i < DEFAULTBRANCH; i++)
+		featFile[i] = new featureFile(i, clusterPath[i]);
+#endif	
+	tree->buildTree(originCenter, featFile, tree->nBranch, tree->depth, featureLength);  //建树
+	printf("build database...\n");
+	getTFIDFVector(featFile, nImages);
+}
+
+void imageRetriver::getOriginCenter(vector<featureClustering*>& originCenter, queue<feature*>& featRecord) {
+	int imageNum = databaseImagePath.size();
+	imageNum = imageNum / DEFAULTBRANCH;
+	int clusterCenter = 0;
+	for(int i = 0; i < imageNum; i++) {
+		if(i % imageNum == 0) {
+			IplImage* img = cvLoadImage(databaseImagePath[i].c_str());
+			struct feature* feat = NULL;
+			int nFeatures = sift_features(img, &feat);
+			featRecord.push(feat);
+			featureClustering* tempCenter = new featureClustering;
+			tempCenter->label = clusterCenter;
+			tempCenter->feature = feat[0].descr;
+			originCenter.push_back(tempCenter);
+			clusterCenter++;
+			cvReleaseImage(&img);
+		}
+	}
+}
+
+int imageRetriver::getTrainFeatures(vector<featureClustering*> originCenter, queue<feature*>& featRecord, vector<string>& featDataStr) {
+	nImages = databaseImagePath.size();
+#ifndef EXPERIMENT              //less images for faster speed in debug
+	nImages /= 100;
+	printf("total images %d\n", nImages);
+#endif
+
+	featFile = new featureFile[DEFAULTBRANCH];
+	for(int i = 0; i < DEFAULTBRANCH; i++) {
+		featFile[i].writeClusterCenter(i);
+		featDataStr.push_back(featFile[i].filePath);
+	}
+	for(int i = 0; i < databaseImagePath.size(); i++) {
+		printf("%s\n", databaseImagePath[i].c_str());
+		IplImage* img = cvLoadImage(databaseImagePath[i].c_str());
+		struct feature* feat = NULL;
+		int nFeatures = sift_features(img, &feat);
+		totalFeatures += nFeatures;
+		for(int j = 0; j < nFeatures; j++) {
+			double minDis = 1e20;
+			int minIndex = 0;
+			for(int k = 0; k < DEFAULTBRANCH; k++) {
+				double tempDis = sqr_distance(feat[j].descr, originCenter[k]->feature, featureLength);
+				if(tempDis < minDis) {
+					minDis = tempDis;
+					minIndex = k;
+				}
+			}
+			featFile[minIndex].writeOneFeat(feat[j].descr, featureLength, minIndex);
+			featFile[minIndex].featureNum++;
+		}
+
+		double** features = new double*[nFeatures];
+		for(int j = 0; j < nFeatures; j++) {
+			features[j] = feat[j].descr;
+		}
+		saveImageFeature(i, features, nFeatures);
+	}
+	tree->root->featureNums = totalFeatures;
+	printf("total features %d\n", totalFeatures);
 }
 
 vector<string> imageRetriver::queryImage(const char* imagePath) {
@@ -38,33 +109,55 @@ vector<string> imageRetriver::queryImage(const char* imagePath) {
 	return ans;
 }
 
-int imageRetriver::getTrainFeatures(double** &trainFeatures, vector<string> imagePaths, feature* &feat, queue<feature*>& featRecord) {
-	nImages = imagePaths.size();
 
-#ifndef EXPERIMENT              //less images for faster speed in debug
-	nImages /= 100;
-	printf("total images %d\n", nImages);
-#endif
-
-	trainFeatures = new double*[nImages * MAXFEATNUM];
-	nFeatures = new int[nImages];
-	int featCount = 0;
+void imageRetriver::getTFIDFVector(featureFile* featFile, int nImages) {
 	for(int i = 0; i < nImages; i++) {
-		cout << imagePaths[i] << " ";
-		databaseImagePath.push_back(imagePaths[i]);
-		IplImage* img = cvLoadImage(imagePaths[i].c_str());
-		int n = sift_features(img, &feat);
-		featRecord.push(feat);
-		for(int j = 0; j < n; j++) {
-			trainFeatures[featCount] = feat[j].descr;
-			featCount++;
-		}
-		cout << n << endl;
-		cvReleaseImage(&img);
-		nFeatures[i] = n;
+		double** features = NULL;
+		int nFeatures = 0;
+		readImageFeature(i, features, nFeatures);
+		calIDF(features, nFeatures);
 	}
-	cout << "total features: " << featCount << endl;
-	return featCount;
+	HKDiv(tree->root, 0); 
+
+	for(int i = 0; i < nImages; i++) {
+		double** features = NULL;
+		int nFeatures = 0;
+		readImageFeature(i, features, nFeatures);
+		getOneTFIDFVector(features, nFeatures, 0, i);
+	}
+}
+
+void imageRetriver::getOneTFIDFVector(double** features, int featNums, int nStart, int imageID) {
+#ifdef BUILDDATABASE
+	printf("image %d nStart %d featnums %d\n", imageID, nStart, featNums);
+#endif
+	tree->clearTF(tree->root, 0);
+	for(int i = 0; i < featNums; i++) 
+		HKAdd(features[nStart + i], 0, tree->root, false);
+	double sum = tree->HKgetSum(tree->root, 0);
+	tree->getTFIDF(tree->root, 0, sum, imageID);
+}
+
+
+bool matchInfoCmp(matchInfo& a, matchInfo& b) {
+	return a.dis < b.dis;
+}
+
+vector<string> imageRetriver::calImageDis(double** queryFeat, vector<matchInfo> &imageDis, int nFeatures) {
+	tree->clearTF(tree->root, 0);
+	for(int i = 0; i < nFeatures; i++) {
+		HKAdd(queryFeat[i], 0, tree->root, false);
+	}
+	double sum = tree->HKgetSum(tree->root, 0);
+	tree->HKCalDis(tree->root, 0, imageDis, sum);
+	sort(imageDis.begin(), imageDis.end(), matchInfoCmp);
+	vector<string> ans;
+	for(int i = 0; i < ANSNUM; i++) {
+		ans.push_back(imageDis[i].imagePath);
+		cout << imageDis[i].dis << " ";
+	}
+
+	return ans;
 }
 
 void imageRetriver::HKAdd(double* feature, int depth, vocabularyTreeNode* cur, bool checkAdd) {  //add tf value for each node
@@ -98,69 +191,12 @@ void imageRetriver::HKDiv(vocabularyTreeNode* curNode, int curDepth) {
 	}
 }
 
-void imageRetriver::calIDF(double** features) {
+void imageRetriver::calIDF(double** features, int nFeatures) {
 	int featureCount = 0;
-	for(int i = 0; i < nImages; i++) {
-		tree->clearADD(tree->root, 0);
-		for(int j = 0; j < nFeatures[i]; j++) {
-			HKAdd(features[featureCount], 0, tree->root, true);   //add the number of images at least one descriptor path through for each node
-			featureCount++;
-		}
-	}
-	HKDiv(tree->root, 0);    //cal N / Ni, where N is the number of total images and Ni is tf
-}
-
-void imageRetriver::getTFIDFVector(double** features, int nImages) { 
-	calIDF(features);        //calculate idf for each node in the tree
-	//tree->printTree(tree->root, 0);
-	vector<vector<double>> tfidfVector;
-	int featureCount = 0;
-	for(int i = 0; i < nImages; i++) {
-		getOneTFIDFVector(features, nFeatures[i], featureCount, i);
-		featureCount += nFeatures[i];
-	}
-}
-
-void imageRetriver::getOneTFIDFVector(double** features, int featNums, int nStart, int imageID) {
-#ifdef BUILDDATABASE
-	printf("image %d nStart %d featnums %d\n", imageID, nStart, featNums);
-#endif
-	tree->clearTF(tree->root, 0);
-	for(int i = 0; i < featNums; i++) 
-		HKAdd(features[nStart + i], 0, tree->root, false);
-	double sum = tree->HKgetSum(tree->root, 0);
-	tree->getTFIDF(tree->root, 0, sum, imageID);
-}
-
-void imageRetriver::addFeature2DataBase(vector<vector<double>> tfidfVector) {
-#ifdef BUILDDATABASE
-	printf("add feature to database\n");
-#endif
-	for(int i = 0; i < nImages; i++) {
-#ifdef BUILDDATABASE
-		printf("%s\n", databaseImagePath[i].c_str());
-#endif
-		imageDatabase.insert(make_pair(tfidfVector[i], databaseImagePath[i]));
-	}
-}
-
-bool matchInfoCmp(matchInfo& a, matchInfo& b) {
-	return a.dis < b.dis;
-}
-
-vector<string> imageRetriver::calImageDis(double** queryFeat, vector<matchInfo> &imageDis, int nFeatures) {
-	tree->clearTF(tree->root, 0);
+	tree->clearADD(tree->root, 0);
 	for(int i = 0; i < nFeatures; i++) {
-		HKAdd(queryFeat[i], 0, tree->root, false);
+		HKAdd(features[featureCount], 0, tree->root, true);   //add the number of images at least one descriptor path through for each node
+		featureCount++;
 	}
-	double sum = tree->HKgetSum(tree->root, 0);
-	tree->HKCalDis(tree->root, 0, imageDis, sum);
-	sort(imageDis.begin(), imageDis.end(), matchInfoCmp);
-	vector<string> ans;
-	for(int i = 0; i < ANSNUM; i++) {
-		ans.push_back(imageDis[i].imagePath);
-		cout << imageDis[i].dis << " ";
-	}
-
-	return ans;
+	//HKDiv(tree->root, 0);    //cal N / Ni, where N is the number of total images and Ni is tf
 }

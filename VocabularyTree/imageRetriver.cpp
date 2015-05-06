@@ -4,6 +4,7 @@
 void imageRetriver::buildDataBase(char* directoryPath) {
 	DirectoryList(directoryPath, databaseImagePath, ".jpg");
 	vector<featureClustering*> originCenter;
+	nImages = databaseImagePath.size();
 #ifdef EXTRACTFEAT
 	printf("extract features...\n");
 	queue<feature*> featRecord;
@@ -22,8 +23,9 @@ void imageRetriver::buildDataBase(char* directoryPath) {
 	featFile = new featureFile[DEFAULTBRANCH];
 	vector<string> clusterPath = MetaData.readFilePath();
 	for(int i = 0; i < DEFAULTBRANCH; i++)
-		featFile[i] = new featureFile(i, clusterPath[i]);
-#endif	
+		featFile[i] = featureFile(i, clusterPath[i]);
+#endif
+	printf("build tree...\n");
 	tree->buildTree(originCenter, featFile, tree->nBranch, tree->depth, featureLength);  //½¨Ê÷
 	printf("build database...\n");
 	getTFIDFVector(featFile, nImages);
@@ -50,7 +52,6 @@ void imageRetriver::getOriginCenter(vector<featureClustering*>& originCenter, qu
 }
 
 int imageRetriver::getTrainFeatures(vector<featureClustering*> originCenter, queue<feature*>& featRecord) {
-	nImages = databaseImagePath.size();
 #ifndef EXPERIMENT              //less images for faster speed in debug
 	nImages /= 100;
 	printf("total images %d\n", nImages);
@@ -118,19 +119,28 @@ vector<string> imageRetriver::queryImage(const char* imagePath) {
 
 
 void imageRetriver::getTFIDFVector(featureFile* featFile, int nImages) {
+	printf("calculate idf value..\n");
 	for(int i = 0; i < nImages; i++) {
+		printf("%d ", i);
 		double** features = NULL;
 		int nFeatures = 0;
 		readImageFeature(i, features, nFeatures);
 		calIDF(features, nFeatures);
+		for(int j = 0; j < nFeatures; j++)
+			delete[] features[j];
+		delete[] features;
 	}
 	HKDiv(tree->root, 0); 
-
+	printf("\n\n\n\n\n");
+	
 	for(int i = 0; i < nImages; i++) {
 		double** features = NULL;
 		int nFeatures = 0;
 		readImageFeature(i, features, nFeatures);
 		getOneTFIDFVector(features, nFeatures, 0, i);
+		for(int j = 0; j < nFeatures; j++)
+			delete[] features[j];
+		delete[] features;
 	}
 }
 

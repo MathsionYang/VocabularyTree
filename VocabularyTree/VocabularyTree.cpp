@@ -4,6 +4,7 @@
 void vocabularyTree::buildTree(vector<featureClustering*> originCenter, featureFile* fileRecord, int nBranch, int depth, int featureLength) {
 	root->children = new vocabularyTreeNode*[nBranch];
 	for(int i = 0; i < originCenter.size(); i++) {
+		printf("build subtree %d\n", i);
 		root->children[i] = new vocabularyTreeNode(nBranch, featureLength, originCenter[i]->feature, 0, 1);  //nFeatures先写0，读进来以后再补	
 		double** features = NULL;
 		int featNum = 0;

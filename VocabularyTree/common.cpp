@@ -199,7 +199,10 @@ void readImageFeature(int imageID, double** &feature, int& nFeatures) {
 	char name[100];
 	sprintf(name, "features/%d.dat", imageID);
 	FILE* fp = fopen(name, "r");
-	fscanf(fp, "%d", nFeatures);
+	fscanf(fp, "%d", &nFeatures);
+	feature = new double*[nFeatures];
+	for(int i = 0; i < nFeatures; i++)
+		feature[i] = new double[DEFAULTFEATURELENGH];
 	for(int i = 0; i < nFeatures; i++) {
 		for(int j = 0; j < DEFAULTFEATURELENGH; j++) {
 			fscanf(fp, "%lf", &feature[i][j]);

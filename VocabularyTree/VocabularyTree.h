@@ -33,8 +33,8 @@ using namespace std;
 //#define BUILDTREE
 #define BUILDDATABASE
 #define EXPERIMENT
-#define EXTRACTFEAT
-//#define READFILE
+//#define EXTRACTFEAT
+#define READFILE
 
 typedef struct index {
 	int imageID;
@@ -128,7 +128,8 @@ public:
 	int featureNum;
 	string filePath;
 	featureFile() {clusterIndex = 0; featureNum = 0;}
-	featureFile(int inputIndex, int inputFeatureNum) { clusterIndex = inputIndex; featureNum = inputFeatureNum; }
+	featureFile(int inputIndex, string inputPath) { clusterIndex = inputIndex; filePath = inputPath; }
+
 	void writeClusterCenter(int clusterIndex) {
 		char fileName[200];
 		sprintf(fileName, "%d.dat", clusterIndex);
@@ -153,16 +154,17 @@ public:
 		while(fgets(lines, 100000, file))
 			featureNum++;
 		fclose(file);
-		cout << featureNum << endl;
+		
+		featureNum -= 1;
 		file = fopen(filePath.c_str(), "r");
 		int clusterIndex = 0;
 		fscanf(file, "%d", &clusterIndex);
 		feature = new double*[featureNum];
-		for(int i = 0; i < featureNum - 1; i++)
+		for(int i = 0; i < featureNum; i++)
 			feature[i] = new double[featureLength];
-		for(int i = 0; i < featureNum - 1; i++) {
+		for(int i = 0; i < featureNum; i++) {
 			for(int j = 0; j < featureLength; j++) {
-				fscanf(file, "%lf", feature[i][j]);
+				fscanf(file, "%lf", &feature[i][j]);
 			}
 		}
 		fclose(file);

@@ -130,7 +130,8 @@ void imageRetriver::getTFIDFVector(featureFile* featFile, int nImages) {
 			delete[] features[j];
 		delete[] features;
 	}
-	HKDiv(tree->root, 0); 
+	HKDiv(tree->root, 0);
+	tree->printTree(tree->root, 0);
 	printf("\n\n\n\n\n");
 	
 	for(int i = 0; i < nImages; i++) {

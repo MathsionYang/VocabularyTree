@@ -90,7 +90,7 @@ void vocabularyTree::printTree(vocabularyTreeNode* curNode, int curDepth) {
 	while(!q.empty()) {
 		vocabularyTreeNode* cur = q.front();
 		q.pop();
-		cout << cur->tf << " " << cur->idf << " " << cur->featureNums << endl;
+		cout << cur->tf << " " << cur->idf << " " << cur->featureNums << " " << cur->depth << endl;
 		system("pause");
 		if(cur->children != NULL) {
 			for(int i = 0; i < cur->nBranch; i++) 

@@ -3,15 +3,13 @@
 //==========================functions in class imageRetriver========================
 void imageRetriver::buildDataBase(char* directoryPath) {
 	DirectoryList(directoryPath, databaseImagePath, ".jpg");
-	metaData MetaData;
 	vector<featureClustering*> originCenter;
 #ifdef EXTRACTFEAT
 	printf("extract features...\n");
 	queue<feature*> featRecord;
-	vector<string> featDataStr;
 	getOriginCenter(originCenter, featRecord);      //得到初始聚类中心
 	MetaData.writeFeature(originCenter);
-	getTrainFeatures(originCenter, featRecord, featDataStr);  //将所有特征初分类,featData返回特征文件的路径
+	getTrainFeatures(originCenter, featRecord);  //将所有特征初分类,featData返回特征文件的路径
 	for(int i = 0; i < featRecord.size(); i++) {
 		feature* topFeat = featRecord.front();
 		free(topFeat);
@@ -33,10 +31,10 @@ void imageRetriver::buildDataBase(char* directoryPath) {
 
 void imageRetriver::getOriginCenter(vector<featureClustering*>& originCenter, queue<feature*>& featRecord) {
 	int imageNum = databaseImagePath.size();
-	imageNum = imageNum / DEFAULTBRANCH;
+	int divNum = imageNum / DEFAULTBRANCH;
 	int clusterCenter = 0;
 	for(int i = 0; i < imageNum; i++) {
-		if(i % imageNum == 0) {
+		if(i % divNum == 0) {
 			IplImage* img = cvLoadImage(databaseImagePath[i].c_str());
 			struct feature* feat = NULL;
 			int nFeatures = sift_features(img, &feat);
@@ -51,7 +49,7 @@ void imageRetriver::getOriginCenter(vector<featureClustering*>& originCenter, qu
 	}
 }
 
-int imageRetriver::getTrainFeatures(vector<featureClustering*> originCenter, queue<feature*>& featRecord, vector<string>& featDataStr) {
+int imageRetriver::getTrainFeatures(vector<featureClustering*> originCenter, queue<feature*>& featRecord) {
 	nImages = databaseImagePath.size();
 #ifndef EXPERIMENT              //less images for faster speed in debug
 	nImages /= 100;
@@ -59,15 +57,21 @@ int imageRetriver::getTrainFeatures(vector<featureClustering*> originCenter, que
 #endif
 
 	featFile = new featureFile[DEFAULTBRANCH];
+	vector<string> featFilePath;
 	for(int i = 0; i < DEFAULTBRANCH; i++) {
 		featFile[i].writeClusterCenter(i);
-		featDataStr.push_back(featFile[i].filePath);
+		featFilePath.push_back(featFile[i].filePath);
 	}
+	MetaData.writeFilePath(featFilePath);
+	struct feature* feat = NULL;
 	for(int i = 0; i < databaseImagePath.size(); i++) {
 		printf("%s\n", databaseImagePath[i].c_str());
-		IplImage* img = cvLoadImage(databaseImagePath[i].c_str());
-		struct feature* feat = NULL;
+		IplImage* img = NULL;
+		img = cvLoadImage(databaseImagePath[i].c_str());
+		if(!img) continue;
 		int nFeatures = sift_features(img, &feat);
+		cvReleaseImage(&img);
+		featRecord.push(feat);
 		totalFeatures += nFeatures;
 		for(int j = 0; j < nFeatures; j++) {
 			double minDis = 1e20;
@@ -82,15 +86,18 @@ int imageRetriver::getTrainFeatures(vector<featureClustering*> originCenter, que
 			featFile[minIndex].writeOneFeat(feat[j].descr, featureLength, minIndex);
 			featFile[minIndex].featureNum++;
 		}
+		printf("%lf ", feat[0].descr[0]);
 
 		double** features = new double*[nFeatures];
 		for(int j = 0; j < nFeatures; j++) {
 			features[j] = feat[j].descr;
 		}
 		saveImageFeature(i, features, nFeatures);
+		delete[] features;
 	}
 	tree->root->featureNums = totalFeatures;
 	printf("total features %d\n", totalFeatures);
+	return 0;
 }
 
 vector<string> imageRetriver::queryImage(const char* imagePath) {

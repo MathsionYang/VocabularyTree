@@ -54,6 +54,14 @@ typedef struct matchInfo {
 	} 
 }matchInfo;
 
+class featureClustering {
+public:
+	double* feature;
+	int label;
+	featureClustering() { feature = NULL; label = 0; }
+	featureClustering(double* inputFeature, int inputLabel) {feature = inputFeature; label = inputLabel;}
+};
+
 class metaData {
 public:
 	string metaDataPath;
@@ -62,33 +70,33 @@ public:
 	vector<featureClustering*> readFeature() {
 		vector<featureClustering*> ans;
 		double* feature = new double[DEFAULTFEATURELENGH];
-		fstream file;
-		file.open(metaDataPath.c_str(), ios::in);
+		FILE* fp = fopen(metaDataPath.c_str(), "r");
 		for(int i = 0; i < DEFAULTBRANCH; i++) {
 			memset(feature, 0, sizeof(double) * DEFAULTFEATURELENGH);
 			for(int j = 0; j < DEFAULTFEATURELENGH; j++)
-				file >> feature[j];
+				fscanf(fp, "%lf", &feature[j]);
 			featureClustering* temp = new featureClustering(feature, i);
 			ans.push_back(temp);
 		}
+		fclose(fp);
 		return ans;
 	}
 
 	void writeFeature(vector<featureClustering*> feat) {
-		fstream file;
-		file.open(metaDataPath.c_str(), ios::out);
+		FILE* fp = fopen(metaDataPath.c_str(), "w");
 		for(int i = 0 ; i < feat.size(); i++) {
 			for(int j = 0; j < DEFAULTFEATURELENGH; j++)
-				file << feat[i]->feature[j] << " ";
-			file << endl;
+				fprintf(fp, "%lf ", feat[i]->feature[j]);
+			fprintf(fp, "\n");
 		}
+		fclose(fp);
 	}
 
-	vector<string> readFilePath {
+	vector<string> readFilePath() {
 		vector<string> ans;
 		string temp;
 		fstream file;
-		file.open(metaData.c_str(), ios::in);
+		file.open(metaDataPath.c_str(), ios::in);
 		int count = 0;
 		while(getline(file, temp)) {
 			count++;
@@ -100,15 +108,17 @@ public:
 			file >> temp;
 			ans.push_back(temp);
 		}
+		file.close();
 		return ans;
 	}
 
 	void writeFilePath(vector<string> path) {
 		fstream file;
-		file.open(metaData.c_str(), ios::in | ios::app);
+		file.open(metaDataPath.c_str(), ios::in | ios::app);
 		for(int i = 0; i < path.size(); i++) {
 			file << path[i] << endl;	
 		}
+		file.close();
 	}
 };
 
@@ -143,18 +153,19 @@ public:
 		while(fgets(lines, 100000, file))
 			featureNum++;
 		fclose(file);
-
+		cout << featureNum << endl;
 		file = fopen(filePath.c_str(), "r");
 		int clusterIndex = 0;
 		fscanf(file, "%d", &clusterIndex);
 		feature = new double*[featureNum];
-		for(int i = 0; i < featureNum; i++)
+		for(int i = 0; i < featureNum - 1; i++)
 			feature[i] = new double[featureLength];
-		for(int i = 0; i < featureNum; i++) {
+		for(int i = 0; i < featureNum - 1; i++) {
 			for(int j = 0; j < featureLength; j++) {
 				fscanf(file, "%lf", feature[i][j]);
 			}
 		}
+		fclose(file);
 	}
 };
 
@@ -185,14 +196,6 @@ public:
 	vector<index> invertedIndex;
 };
 
-class featureClustering {
-public:
-	double* feature;
-	int label;
-	featureClustering() { feature = NULL; label = 0; }
-	featureClustering(double* inputFeature, int inputLabel) {feature = inputFeature; label = inputLabel;}
-};
-
 class vocabularyTree {
 public:
 	vocabularyTreeNode* root;
@@ -214,19 +217,19 @@ public:
 class imageRetriver {
 public:
 	vocabularyTree* tree;
-	map<vector<double>, string> imageDatabase;
 	vector<string> databaseImagePath; 
 	int featureLength;  
 	int nImages;
 	int totalFeatures;
 	featureFile* featFile;
+	metaData MetaData;
 
-	imageRetriver() { tree = new vocabularyTree(); nImages = 0; featureLength = DEFAULTFEATURELENGH; nFeatures = NULL;}
+	imageRetriver() { tree = new vocabularyTree(); nImages = 0; featureLength = DEFAULTFEATURELENGH;}
 	void buildDataBase( char* directoryPath );
 	vector<string> queryImage( const char* imagePath ); 
 
 	void getOriginCenter(vector<featureClustering*>& originCenter, queue<feature*>& featRecord);
-	int getTrainFeatures(vector<featureClustering*> originCenter, queue<feature*>& featRecord, vector<string>& featData);
+	int getTrainFeatures(vector<featureClustering*> originCenter, queue<feature*>& featRecord);
 	void calIDF(double** features, int nFeatures);               //cal IDF for each node in the tree
 	void getTFIDFVector(featureFile* featFile, int nImages);
 	void getOneTFIDFVector(double** features, int featNums, int nStart, int imageCount); 
@@ -246,6 +249,6 @@ extern int cmp(const void* a, const void* b);
 extern bool DirectoryList(LPCSTR Path, vector<string>& path, char* ext);
 extern void printAns(vector<string> ans);
 extern void saveImageFeature(int imageID, double** feature, int nFeatures);
-extern void readImageFeature(int imageID, double** &feature, int& nFeatures)
+extern void readImageFeature(int imageID, double** &feature, int& nFeatures);
 
 #endif

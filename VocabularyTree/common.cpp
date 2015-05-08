@@ -247,7 +247,6 @@ vocabularyTree* readTree() {
 		}
 	}
 	fclose(fp);
-	printf("finish\n");
 	return tree;
 }
 

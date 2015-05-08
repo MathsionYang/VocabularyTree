@@ -15,7 +15,7 @@ void vocabularyTree::buildTree(vector<featureClustering*> originCenter, featureF
 			featureCluster[j].feature = features[j];
 			featureCluster[j].label = i;
 		}
-		buildRecursion(1, root->children[i], featureCluster, featNum, nBranch, featureLength);
+		buildRecursion(2, root->children[i], featureCluster, featNum, nBranch, featureLength);
 
 		for(int j = 0; j < featNum; j++) {
 			delete features[j];
@@ -39,7 +39,7 @@ void vocabularyTree::buildRecursion(int curDepth, vocabularyTreeNode* curNode, f
 	double** clusterCenter = NULL;
 	kmeans(features, nFeatures, branchNum, nums, featureLength, clusterCenter);
 	qsort(features, nFeatures, sizeof(featureClustering), cmp);
-	int ccount =0 ;
+	int ccount = 0;
 	curNode->children = new vocabularyTreeNode*[branchNum];
 	int offset = 0;
 	for(int i = 0; i < nBranch; i++) {
@@ -57,8 +57,10 @@ void vocabularyTree::clearTF(vocabularyTreeNode* curNode, int curDepth) {
 	if(curDepth == depth)
 		return;
 	curNode->tf = 0.0;
-	for(int i = 0; i < curNode->nBranch; i++) {
-		clearTF(curNode->children[i], curDepth + 1);
+	if(curNode->children != NULL) {
+		for(int i = 0; i < curNode->nBranch; i++) {
+			clearTF(curNode->children[i], curDepth + 1);
+		}
 	}
 }
 
@@ -71,8 +73,10 @@ void vocabularyTree::getTFIDF(vocabularyTreeNode* curNode, int curDepth, double 
 		tfidfValue /= sum;
 		curNode->invertedIndex.push_back(index(imageID, tfidfValue));
 	}
-	for(int i = 0; i < curNode->nBranch; i++) {
-		getTFIDF(curNode->children[i], curDepth + 1, sum, imageID);
+	if(curNode->children != NULL) {
+		for(int i = 0; i < curNode->nBranch; i++) {
+			getTFIDF(curNode->children[i], curDepth + 1, sum, imageID);
+		}	
 	}
 }
 
@@ -80,8 +84,11 @@ void vocabularyTree::clearADD(vocabularyTreeNode* curNode, int curDepth) {
 	if(curDepth == depth)
 		return;
 	curNode->add = true;
-	for(int i = 0; i < curNode->nBranch; i++)
-		clearADD(curNode->children[i], curDepth + 1);
+	if(curNode->children != NULL) {
+		for(int i = 0; i < curNode->nBranch; i++) {
+			clearADD(curNode->children[i], curDepth + 1);
+		}
+	}
 }
 
 void vocabularyTree::printTree(vocabularyTreeNode* curNode, int curDepth) {
@@ -90,7 +97,7 @@ void vocabularyTree::printTree(vocabularyTreeNode* curNode, int curDepth) {
 	while(!q.empty()) {
 		vocabularyTreeNode* cur = q.front();
 		q.pop();
-		cout << cur->tf << " " << cur->idf << " " << cur->featureNums << " " << cur->depth << endl;
+		cout << cur->tf << " " << cur->idf << " " << cur->featureNums << " " << cur->depth << " " << cur->feature[0]<< endl;
 		system("pause");
 		if(cur->children != NULL) {
 			for(int i = 0; i < cur->nBranch; i++) 
@@ -104,8 +111,10 @@ double vocabularyTree::HKgetSum(vocabularyTreeNode* curNode, int curDepth) {
 		return 0;
 	} else {
 		double sum = curNode->tf * curNode->idf;
-		for(int i = 0; i < curNode->nBranch; i++) {
-			sum += HKgetSum(curNode->children[i], curDepth + 1);
+		if(curNode->children != NULL) {
+			for(int i = 0; i < curNode->nBranch; i++) {
+				sum += HKgetSum(curNode->children[i], curDepth + 1);
+			}
 		}
 		return sum;
 	} 
@@ -121,6 +130,8 @@ void vocabularyTree::HKCalDis(vocabularyTreeNode* curNode, int curDepth, vector<
 			imageDis[(curNode->invertedIndex)[i].imageID].dis -= 2 * tfidfValue;
 		}
 	}
-	for(int i = 0; i < curNode->nBranch; i++)
-		HKCalDis(curNode->children[i], curDepth + 1, imageDis, sum);
+	if(curNode->children != NULL) {
+		for(int i = 0; i < curNode->nBranch; i++)
+			HKCalDis(curNode->children[i], curDepth + 1, imageDis, sum);
+	}
 }

@@ -231,7 +231,7 @@ public:
 	vector<string> queryImage( const char* imagePath ); 
 
 	void getOriginCenter(vector<featureClustering*>& originCenter, queue<feature*>& featRecord);
-	int getTrainFeatures(vector<featureClustering*> originCenter, queue<feature*>& featRecord);
+	int getTrainFeatures(vector<featureClustering*> originCenter);
 	void calIDF(double** features, int nFeatures);               //cal IDF for each node in the tree
 	void getTFIDFVector(featureFile* featFile, int nImages);
 	void getOneTFIDFVector(double** features, int featNums, int nStart, int imageCount); 
@@ -252,5 +252,7 @@ extern bool DirectoryList(LPCSTR Path, vector<string>& path, char* ext);
 extern void printAns(vector<string> ans);
 extern void saveImageFeature(int imageID, double** feature, int nFeatures);
 extern void readImageFeature(int imageID, double** &feature, int& nFeatures);
+extern vocabularyTree* readTree();
+extern void writeTree(vocabularyTree* tree);
 
 #endif

@@ -10,12 +10,16 @@ void imageRetriver::buildDataBase(char* directoryPath) {
 	queue<feature*> featRecord;
 	getOriginCenter(originCenter, featRecord);      //得到初始聚类中心
 	MetaData.writeFeature(originCenter);
-	getTrainFeatures(originCenter, featRecord);  //将所有特征初分类,featData返回特征文件的路径
-	for(int i = 0; i < featRecord.size(); i++) {
-		feature* topFeat = featRecord.front();
-		free(topFeat);
+	while(!featRecord.empty()) {
+		free(featRecord.front());
 		featRecord.pop();
 	}
+	getTrainFeatures(originCenter);  //将所有特征初分类,featData返回特征文件的路径
+	printf("build tree...\n");
+	tree->buildTree(originCenter, featFile, tree->nBranch, tree->depth, featureLength);  //建树
+	printf("build database...\n");
+	getTFIDFVector(featFile, nImages);
+	writeTree(tree);
 #endif
 #ifdef READFILE
 	nImages = databaseImagePath.size();
@@ -24,34 +28,35 @@ void imageRetriver::buildDataBase(char* directoryPath) {
 	vector<string> clusterPath = MetaData.readFilePath();
 	for(int i = 0; i < DEFAULTBRANCH; i++)
 		featFile[i] = featureFile(i, clusterPath[i]);
+	tree = readTree();
 #endif
-	printf("build tree...\n");
-	tree->buildTree(originCenter, featFile, tree->nBranch, tree->depth, featureLength);  //建树
-	printf("build database...\n");
-	getTFIDFVector(featFile, nImages);
 }
 
 void imageRetriver::getOriginCenter(vector<featureClustering*>& originCenter, queue<feature*>& featRecord) {
 	int imageNum = databaseImagePath.size();
 	int divNum = imageNum / DEFAULTBRANCH;
 	int clusterCenter = 0;
+	int randomCount = 0;
 	for(int i = 0; i < imageNum; i++) {
 		if(i % divNum == 0) {
 			IplImage* img = cvLoadImage(databaseImagePath[i].c_str());
 			struct feature* feat = NULL;
 			int nFeatures = sift_features(img, &feat);
-			featRecord.push(feat);
 			featureClustering* tempCenter = new featureClustering;
 			tempCenter->label = clusterCenter;
 			tempCenter->feature = feat[0].descr;
 			originCenter.push_back(tempCenter);
 			clusterCenter++;
 			cvReleaseImage(&img);
+
+			randomCount++;
+			if(randomCount == 10)
+				break;
 		}
 	}
 }
 
-int imageRetriver::getTrainFeatures(vector<featureClustering*> originCenter, queue<feature*>& featRecord) {
+int imageRetriver::getTrainFeatures(vector<featureClustering*> originCenter) {
 #ifndef EXPERIMENT              //less images for faster speed in debug
 	nImages /= 100;
 	printf("total images %d\n", nImages);
@@ -71,8 +76,7 @@ int imageRetriver::getTrainFeatures(vector<featureClustering*> originCenter, que
 		img = cvLoadImage(databaseImagePath[i].c_str());
 		if(!img) continue;
 		int nFeatures = sift_features(img, &feat);
-		cvReleaseImage(&img);
-		featRecord.push(feat);
+		
 		totalFeatures += nFeatures;
 		for(int j = 0; j < nFeatures; j++) {
 			double minDis = 1e20;
@@ -87,7 +91,6 @@ int imageRetriver::getTrainFeatures(vector<featureClustering*> originCenter, que
 			featFile[minIndex].writeOneFeat(feat[j].descr, featureLength, minIndex);
 			featFile[minIndex].featureNum++;
 		}
-		printf("%lf ", feat[0].descr[0]);
 
 		double** features = new double*[nFeatures];
 		for(int j = 0; j < nFeatures; j++) {
@@ -95,6 +98,8 @@ int imageRetriver::getTrainFeatures(vector<featureClustering*> originCenter, que
 		}
 		saveImageFeature(i, features, nFeatures);
 		delete[] features;
+		free(feat);
+		cvReleaseImage(&img);
 	}
 	tree->root->featureNums = totalFeatures;
 	printf("total features %d\n", totalFeatures);
@@ -131,7 +136,7 @@ void imageRetriver::getTFIDFVector(featureFile* featFile, int nImages) {
 		delete[] features;
 	}
 	HKDiv(tree->root, 0);
-	tree->printTree(tree->root, 0);
+	//tree->printTree(tree->root, 0);
 	printf("\n\n\n\n\n");
 	
 	for(int i = 0; i < nImages; i++) {
@@ -174,7 +179,6 @@ vector<string> imageRetriver::calImageDis(double** queryFeat, vector<matchInfo> 
 		ans.push_back(imageDis[i].imagePath);
 		cout << imageDis[i].dis << " ";
 	}
-
 	return ans;
 }
 
@@ -188,24 +192,28 @@ void imageRetriver::HKAdd(double* feature, int depth, vocabularyTreeNode* cur, b
 	}
 	int minIndex = 0;
 	double minDis = 1e20;
-	for(int i = 0; i < cur->nBranch; i++) {
-		if((cur->children[i])->featureNums == 0)
-			continue;
-		double curDis = sqr_distance(feature, (cur->children[i])->feature, featureLength);
-		if(curDis < minDis) {
-			minDis = curDis;
-			minIndex = i;
+	if(cur->children != NULL) {
+		for(int i = 0; i < cur->nBranch; i++) {
+			if((cur->children[i])->featureNums == 0)
+				continue;
+			double curDis = sqr_distance(feature, (cur->children[i])->feature, featureLength);
+			if(curDis < minDis) {
+				minDis = curDis;
+				minIndex = i;
+			}
 		}
+		HKAdd(feature, depth + 1, cur->children[minIndex], checkAdd);
 	}
-	HKAdd(feature, depth + 1, cur->children[minIndex], checkAdd);
 }
 
 void imageRetriver::HKDiv(vocabularyTreeNode* curNode, int curDepth) {
 	if(curDepth == tree->depth)
 		return;
 	curNode->idf = log(1.0 * nImages / (max((int)curNode->tf, 1)));
-	for(int i = 0; i < curNode->nBranch; i++) {
-		HKDiv(curNode->children[i], curDepth + 1); 
+	if(curNode->children != NULL) {
+		for(int i = 0; i < curNode->nBranch; i++) {
+			HKDiv(curNode->children[i], curDepth + 1); 
+		}
 	}
 }
 

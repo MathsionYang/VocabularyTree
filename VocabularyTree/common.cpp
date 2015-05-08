@@ -210,3 +210,71 @@ void readImageFeature(int imageID, double** &feature, int& nFeatures) {
 	}
 	fclose(fp);
 }
+
+vocabularyTree* readTree() {
+	vocabularyTree* tree = new vocabularyTree();
+	FILE* fp = fopen("tree.dat", "r");
+	fscanf(fp, "%d %d %d\n", &tree->nNodes, &tree->nBranch, &tree->depth);
+	queue<vocabularyTreeNode*> q;
+	q.push(tree->root);
+	while(!q.empty()) {
+		vocabularyTreeNode* cur = q.front();
+		q.pop();
+		if(cur->depth == DEFAULTDEPTH) {
+			continue;
+		} else {
+			fscanf(fp, "%d %d %lf %d %d %lf %lf %d\n", &cur->nBranch, &cur->featureLength, &cur->weight, &cur->featureNums, &cur->depth, &cur->tf, &cur->idf, &cur->add);
+			cur->feature = new double[DEFAULTFEATURELENGH];
+			if(cur->depth != 0) {
+				for(int i = 0; i < DEFAULTFEATURELENGH; i++)
+					fscanf(fp, "%lf ", &cur->feature[i]);
+			}
+			int invertedIndexSize = 0;
+			fscanf(fp, "%d", &invertedIndexSize);
+			for(int i = 0; i < invertedIndexSize; i++) {
+				int inputID = 0;
+				double inputInverted = 0;
+				fscanf(fp, "%d %lf", &inputID, &inputInverted);
+				cur->invertedIndex.push_back(index(inputID, inputInverted));
+			}
+			if(cur->depth != 5) {
+				cur->children = new vocabularyTreeNode*[DEFAULTBRANCH];
+				for(int i = 0; i < DEFAULTBRANCH; i++) {
+					cur->children[i] = new vocabularyTreeNode();
+					q.push(cur->children[i]);
+				}
+			}
+		}
+	}
+	fclose(fp);
+	printf("finish\n");
+	return tree;
+}
+
+void writeTree(vocabularyTree* tree) {
+	queue<vocabularyTreeNode*> q;
+	q.push(tree->root);
+	FILE* fp = fopen("tree.dat", "w");
+	fprintf(fp, "%d %d %d\n", tree->nNodes, tree->nBranch, tree->depth);
+	while(!q.empty()) {
+		vocabularyTreeNode* cur = q.front();
+		q.pop();
+		fprintf(fp, "%d %d %lf %d %d %lf %lf %d\n", cur->nBranch, cur->featureLength, cur->weight, cur->featureNums, cur->depth, cur->tf, cur->idf, cur->add);
+		if(cur->depth != 0) {
+			for(int i = 0; i < DEFAULTFEATURELENGH; i++) {
+				fprintf(fp, "%lf ", cur->feature[i]);
+			}
+		}
+		fprintf(fp, "%d ", cur->invertedIndex.size());
+		for(int i = 0; i < cur->invertedIndex.size(); i++) {
+			fprintf(fp, "%d %lf ", cur->invertedIndex[i].imageID, cur->invertedIndex[i].tfidf);
+		}
+		fprintf(fp, "\n");
+		if(cur->children != NULL) {
+			for(int i = 0; i < cur->nBranch; i++)
+				q.push(cur->children[i]);
+		}
+	}
+	fclose(fp);
+	printf("finish write\n");
+}

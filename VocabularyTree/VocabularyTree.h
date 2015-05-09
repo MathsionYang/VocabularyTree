@@ -226,7 +226,7 @@ public:
 	featureFile* featFile;
 	metaData MetaData;
 
-	imageRetriver() { tree = new vocabularyTree(); nImages = 0; featureLength = DEFAULTFEATURELENGH;}
+	imageRetriver() { tree = new vocabularyTree(); nImages = 0; featureLength = DEFAULTFEATURELENGH; totalFeatures = 0;}
 	void buildDataBase( char* directoryPath );
 	vector<string> queryImage( const char* imagePath ); 
 
@@ -254,5 +254,10 @@ extern void saveImageFeature(int imageID, double** feature, int nFeatures);
 extern void readImageFeature(int imageID, double** &feature, int& nFeatures);
 extern vocabularyTree* readTree();
 extern void writeTree(vocabularyTree* tree);
+
+#ifdef EXPERIMENT
+extern SYSTEMTIME timeRecord;
+extern fstream timeFile;
+#endif
 
 #endif

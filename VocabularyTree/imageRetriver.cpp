@@ -14,13 +14,62 @@ void imageRetriver::buildDataBase(char* directoryPath) {
 		free(featRecord.front());
 		featRecord.pop();
 	}
-	getTrainFeatures(originCenter);  //将所有特征初分类,featData返回特征文件的路径
-	printf("build tree...\n");
-	tree->buildTree(originCenter, featFile, tree->nBranch, tree->depth, featureLength);  //建树
-	printf("build database...\n");
-	getTFIDFVector(featFile, nImages);
-	writeTree(tree);
+
+#ifdef EXPERIMENT
+	GetLocalTime(&timeRecord);
+	timeFile << "start extra train features " << timeRecord.wHour << " " << timeRecord.wMinute << " " << timeRecord.wSecond << " " << timeRecord.wMilliseconds << endl;
 #endif
+
+	getTrainFeatures(originCenter);  //将所有特征初分类,featData返回特征文件的路径
+
+#ifdef EXPERIMENT
+	GetLocalTime(&timeRecord);
+	timeFile << "end extra train features " << timeRecord.wHour << " " << timeRecord.wMinute << " " << timeRecord.wSecond << " " << timeRecord.wMilliseconds << endl;
+#endif
+
+	printf("build tree...\n");
+
+#ifdef EXPERIMENT
+	GetLocalTime(&timeRecord);
+	timeFile << "start build tree " << timeRecord.wHour << " " << timeRecord.wMinute << " " << timeRecord.wSecond << " " << timeRecord.wMilliseconds << endl;
+#endif
+	
+	tree->buildTree(originCenter, featFile, tree->nBranch, tree->depth, featureLength);  //建树
+	
+#ifdef EXPERIMENT
+	GetLocalTime(&timeRecord);
+	timeFile << "end build tree " << timeRecord.wHour << " " << timeRecord.wMinute << " " << timeRecord.wSecond << " " << timeRecord.wMilliseconds << endl;
+#endif
+	
+	printf("build database...\n");
+
+#ifdef EXPERIMENT
+	GetLocalTime(&timeRecord);
+	timeFile << "start cal tfidf vector " << timeRecord.wHour << " " << timeRecord.wMinute << " " << timeRecord.wSecond << " " << timeRecord.wMilliseconds << endl;
+#endif
+
+	getTFIDFVector(featFile, nImages);
+	
+#ifdef EXPERIMENT
+	GetLocalTime(&timeRecord);
+	timeFile << "end cal tfidf vector " << timeRecord.wHour << " " << timeRecord.wMinute << " " << timeRecord.wSecond << " " << timeRecord.wMilliseconds << endl;
+#endif
+
+	
+#ifdef EXPERIMENT
+	GetLocalTime(&timeRecord);
+	timeFile << "start write tree " << timeRecord.wHour << " " << timeRecord.wMinute << " " << timeRecord.wSecond << " " << timeRecord.wMilliseconds << endl;
+#endif
+
+	writeTree(tree);
+	  
+#ifdef EXPERIMENT
+	GetLocalTime(&timeRecord);
+	timeFile << "end write tree " << timeRecord.wHour << " " << timeRecord.wMinute << " " << timeRecord.wSecond << " " << timeRecord.wMilliseconds << endl;
+#endif
+
+#endif
+
 #ifdef READFILE
 	nImages = databaseImagePath.size();
 	originCenter = MetaData.readFeature();
@@ -28,7 +77,19 @@ void imageRetriver::buildDataBase(char* directoryPath) {
 	vector<string> clusterPath = MetaData.readFilePath();
 	for(int i = 0; i < DEFAULTBRANCH; i++)
 		featFile[i] = featureFile(i, clusterPath[i]);
+
+#ifdef EXPERIMENT
+	GetLocalTime(&timeRecord);
+	timeFile << "start read tree " << timeRecord.wHour << " " << timeRecord.wMinute << " " << timeRecord.wSecond << " " << timeRecord.wMilliseconds << endl;
+#endif
+
 	tree = readTree();
+
+#ifdef EXPERIMENT
+	GetLocalTime(&timeRecord);
+	timeFile << "end read tree " << timeRecord.wHour << " " << timeRecord.wMinute << " " << timeRecord.wSecond << " " << timeRecord.wMilliseconds << endl;
+#endif
+
 #endif
 }
 
@@ -177,7 +238,6 @@ vector<string> imageRetriver::calImageDis(double** queryFeat, vector<matchInfo> 
 	vector<string> ans;
 	for(int i = 0; i < ANSNUM; i++) {
 		ans.push_back(imageDis[i].imagePath);
-		cout << imageDis[i].dis << " ";
 	}
 	return ans;
 }
